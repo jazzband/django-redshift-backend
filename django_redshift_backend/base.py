@@ -20,6 +20,7 @@ from django.db.backends.postgresql_psycopg2.base import (
 
 class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_id_from_insert = False
+    has_select_for_update = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
@@ -27,6 +28,9 @@ class DatabaseOperations(BasePGDatabaseOperations):
     def last_insert_id(self, cursor, table_name, pk_name):
         cursor.execute('SELECT MAX({pk}) from {table}'.format(pk=pk_name, table=self.quote_name(table_name)))
         return cursor.fetchone()[0]
+
+    def for_update_sql(self, nowait=False):
+        raise NotImplementedError('SELECT FOR UPDATE is not implemented for this database backend')
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):

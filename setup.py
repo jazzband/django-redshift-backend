@@ -7,7 +7,7 @@ requires = [
 
 setup(
     name='django-redshift-backend',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(),
     url='https://github.com/shimizukawa/django-redshift-backend',
     license='Apache Software License',
