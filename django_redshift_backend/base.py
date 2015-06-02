@@ -5,9 +5,13 @@ Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 from __future__ import absolute_import
 
-from django.db.backends import (
-    BaseDatabaseValidation,
-)
+try:
+    from django.db.backends.base.validation import (
+        BaseDatabaseValidation,
+    )
+except ImportError:
+    # for django < 1.8
+    from django.db.backends import BaseDatabaseValidation
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
