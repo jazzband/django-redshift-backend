@@ -36,6 +36,9 @@ class DatabaseOperations(BasePGDatabaseOperations):
     def for_update_sql(self, nowait=False):
         raise NotImplementedError('SELECT FOR UPDATE is not implemented for this database backend')
 
+    def set_time_zone_sql(self):
+        return "SELECT 1;"
+
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
