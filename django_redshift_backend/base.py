@@ -5,13 +5,8 @@ Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 from __future__ import absolute_import
 
-try:
-    from django.db.backends.base.validation import (
-        BaseDatabaseValidation,
-    )
-except ImportError:
-    # for django < 1.8
-    from django.db.backends import BaseDatabaseValidation
+import warnings
+
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
@@ -19,6 +14,7 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseClient,
     DatabaseCreation,
     DatabaseIntrospection,
+    BaseDatabaseValidation,
 )
 
 
@@ -49,3 +45,23 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
         self.creation = DatabaseCreation(self)
         self.introspection = DatabaseIntrospection(self)
         self.validation = BaseDatabaseValidation(self)
+
+    def init_connection_state(self):
+        self.connection.set_client_encoding('UTF8')
+
+        tz = self.settings_dict['TIME_ZONE']
+        conn_tz = self.connection.get_parameter_status('TimeZone')
+
+        if tz and conn_tz != tz:
+            warnings.warn("TIME_ZONE `%s` is specified and redshift is using `%s`. "
+                          "However, Redshift doesn't support `SET TIME ZONE` command, "
+                          "so redshift backend do nothing." % (tz, conn_tz),
+                          RuntimeWarning)
+            cursor = self.connection.cursor()
+            try:
+                cursor.execute('SELECT version()')
+            finally:
+                cursor.close()
+            # Commit after setting the time zone (see #17062)
+            if not self.get_autocommit():
+                self.connection.commit()
