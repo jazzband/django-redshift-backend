@@ -1,3 +1,4 @@
 wheelhouse/
 dist/
 *.egg-info
+*.pyc
