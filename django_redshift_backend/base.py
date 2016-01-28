@@ -5,7 +5,7 @@ Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 from __future__ import absolute_import
 
-import warnings
+import logging
 
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -16,6 +16,8 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseIntrospection,
     BaseDatabaseValidation,
 )
+
+logger = logging.getLogger('django.db.backends')
 
 
 class DatabaseFeatures(BasePGDatabaseFeatures):
@@ -53,10 +55,9 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
         conn_tz = self.connection.get_parameter_status('TimeZone')
 
         if tz and conn_tz != tz:
-            warnings.warn("TIME_ZONE `%s` is specified and redshift is using `%s`. "
-                          "However, Redshift doesn't support `SET TIME ZONE` command, "
-                          "so redshift backend do nothing." % (tz, conn_tz),
-                          RuntimeWarning)
+            logger.debug("TIME_ZONE `%s` is specified and redshift is using `%s`. "
+                         "However, Redshift doesn't support `SET TIME ZONE` command, "
+                         "so redshift backend do nothing.", tz, conn_tz)
             cursor = self.connection.cursor()
             try:
                 cursor.execute('SELECT version()')
