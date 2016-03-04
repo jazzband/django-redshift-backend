@@ -5,6 +5,7 @@ Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 from __future__ import absolute_import
 
+from copy import deepcopy
 import logging
 
 from django.db.backends.postgresql_psycopg2.base import (
@@ -37,6 +38,9 @@ class DatabaseOperations(BasePGDatabaseOperations):
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
+
+    data_types = deepcopy(BasePGDatabaseWrapper.data_types)
+    data_types["DateTimeField"] = "timestamp"
 
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
