@@ -12,6 +12,7 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
     DatabaseOperations as BasePGDatabaseOperations,
+    DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
     DatabaseClient,
     DatabaseCreation,
     DatabaseIntrospection,
@@ -36,9 +37,19 @@ class DatabaseOperations(BasePGDatabaseOperations):
         raise NotImplementedError('SELECT FOR UPDATE is not implemented for this database backend')
 
 
+class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
+
+    def _model_indexes_sql(self, model):
+        return []
+
+    def _create_like_index_sql(self, model, field):
+        return None
+
+
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
 
+    SchemaEditorClass = DatabaseSchemaEditor
     data_types = deepcopy(BasePGDatabaseWrapper.data_types)
     data_types["DateTimeField"] = "timestamp"
 
