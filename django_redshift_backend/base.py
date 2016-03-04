@@ -51,6 +51,7 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
 
     SchemaEditorClass = DatabaseSchemaEditor
     data_types = deepcopy(BasePGDatabaseWrapper.data_types)
+    data_types["AutoField"] = "integer identity(0, 1)"
     data_types["DateTimeField"] = "timestamp"
 
     def __init__(self, *args, **kwargs):
