@@ -13,10 +13,17 @@ Differences from postgres_psycopg2 backend
 
 * Use 'integer identity(1, 1)' for AutoField
 * Use 'timestamp' for DateTimeField
+* Use 'varchar(max)' for TextField
+* Multiply 3 to VARCHAR length to support utf-8 string
 * Not use RETURNING.
 * Not use SELECT FOR UPDATE.
 * Not use SET TIME ZONE.
 * Not use Index
+* Not use DEFERRABLE INITIALLY DEFERRED
+* Not use CONSTRAINT
+* Not use DROP DEFAULT
+* To add column to existent table on Redshift, column must be nullable
+* To support modify column, add new column -> data migration -> drop old column -> rename
 
 LICENSE
 =======
@@ -30,6 +37,9 @@ CHANGES
 ---
 
 * #3: more compat with Redshift (AutoField, DateTimeField, Index). Thanks to Maxime Vdb.
+* More compat with redshift: add TextField
+* More compat with redshift: not use DEFERRABLE, CONSTRAINT, DROP DEFAULT
+* More compat with redshift: support modify column
 
 
 0.2.1
