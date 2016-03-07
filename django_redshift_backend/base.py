@@ -255,13 +255,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Next, start accumulating actions to do
         actions = []
         post_actions = []
-        # Type change?
-        if old_type != new_type:
-            fragment, other_actions = self._alter_column_type_sql(
-                model._meta.db_table, old_field, new_field, new_type
-            )
-            actions.append(fragment)
-            post_actions.extend(other_actions)
+
         # When changing a column NULL constraint to NOT NULL with a given
         # default value, we need to perform 4 steps:
         #  1. Add a default for new incoming writes
@@ -276,7 +270,15 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             new_default is not None and
             not self.skip_default(new_field)
         )
-        if needs_database_default:
+        # Type or default is changed?
+        if (old_type != new_type) or needs_database_default:
+            # ## To change column type or default, We need this migration sequence:
+            # ##
+            # ## 1. Add new column with temporary name
+            # ## 2. Migrate values from original column to temprary column
+            # ## 3. Drop old column
+            # ## 4. Rename temporary column name to original column name
+
             # ## ALTER TABLE <table> ADD COLUMN 'tmp' <type> DEFAULT <value>
             definition, params = self.column_sql(model, new_field, include_default=True)
             actions.append((

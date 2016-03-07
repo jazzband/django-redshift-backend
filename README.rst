@@ -43,6 +43,11 @@ Apache Software License
 CHANGES
 =======
 
+0.3.1
+-----
+
+* Support column type changing on migration.
+
 0.3
 ---
 
