@@ -11,9 +11,12 @@ This product is tested with:
 Differences from postgres_psycopg2 backend
 ==========================================
 
+* Use 'integer identity(1, 1)' for AutoField
+* Use 'timestamp' for DateTimeField
 * Not use RETURNING.
 * Not use SELECT FOR UPDATE.
 * Not use SET TIME ZONE.
+* Not use Index
 
 LICENSE
 =======
@@ -22,6 +25,12 @@ Apache Software License
 
 CHANGES
 =======
+
+0.3
+---
+
+* #3: more compat with Redshift (AutoField, DateTimeField, Index). Thanks to Maxime Vdb.
+
 
 0.2.1
 -----
