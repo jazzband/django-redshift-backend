@@ -436,3 +436,9 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
             # Commit after setting the time zone (see #17062)
             if not self.get_autocommit():
                 self.connection.commit()
+
+    def check_constraints(self, table_names=None):
+        """
+        No constraints to check in Redsfhift.
+        """
+        pass
