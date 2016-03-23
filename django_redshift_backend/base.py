@@ -9,6 +9,7 @@ from copy import deepcopy
 import re
 import logging
 
+from django.conf import settings
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
@@ -53,6 +54,8 @@ def _related_non_m2m_objects(old_field, new_field):
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
+    multiply_varchar_length = int(getattr(settings, "REDSHIFT_VARCHAR_LENGTH_MULTIPLIER", 1))
+
     def _model_indexes_sql(self, model):
         # Redshift doesn't support INDEX.
         return []
@@ -88,7 +91,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             if m:
                 definition = re.sub(
                     'varchar\((\d+?)\)',
-                    "varchar({0})".format(str(int(m.group(1)) * 3)),
+                    "varchar({0})".format(str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
 
             # Check constraints can go on the column SQL here

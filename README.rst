@@ -16,7 +16,7 @@ Type mapping:
 * 'integer identity(1, 1)' for AutoField
 * 'timestamp' for DateTimeField
 * 'varchar(max)' for TextField
-* Multiply 3 to VARCHAR length to support utf-8 string
+* Possibility to multiply VARCHAR length to support utf-8 string, using `REDSHIFT_VARCHAR_LENGTH_MULTIPLIER` setting.
 
 Stop using:
 
