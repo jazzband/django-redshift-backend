@@ -41,6 +41,9 @@ class DatabaseOperations(BasePGDatabaseOperations):
         # unused
         return ""
 
+    def sequence_reset_sql(self, style, model_list):
+        # impossible with Redshift to reset a sequence
+        return []
 
 def _related_non_m2m_objects(old_field, new_field):
     # Filters out m2m objects from reverse relations.
