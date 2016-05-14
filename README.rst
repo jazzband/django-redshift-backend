@@ -53,8 +53,8 @@ Apache Software License
 CHANGES
 =======
 
-0.3.1
------
+0.4
+---
 
 * #4: More compat with redshift: not use SET CONSTRAINTS. Thanks to Maxime Vdb.
 * #5: Add REDSHIFT_VARCHAR_LENGTH_MULTIPLIER settings. Thanks to Maxime Vdb.
