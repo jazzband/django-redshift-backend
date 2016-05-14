@@ -23,6 +23,7 @@ Stop using:
 * RETURNING.
 * SELECT FOR UPDATE
 * SET TIME ZONE
+* SET CONSTRAINTS
 * INDEX
 * DEFERRABLE INITIALLY DEFERRED
 * CONSTRAINT
@@ -46,6 +47,7 @@ CHANGES
 0.3.1
 -----
 
+* #4: More compat with redshift: not use SET CONSTRAINTS. Thanks to Maxime Vdb.
 * Support column type changing on migration.
 
 0.3
