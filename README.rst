@@ -4,7 +4,7 @@ Redshift database backend for Django
 
 This product is tested with:
 
-* python-2.7, 3.5
+* python-2.7, 3.4, 3.5
 * django-1.7, 1.8, 1.9
 
 
@@ -67,6 +67,8 @@ CHANGES
 0.4
 ---
 
+* Support Python-3.4 and 3.5
+* #7: Restore support django-1.7. Version 0.3 doesn't support django-1.7.
 * #4: More compat with redshift: not use SET CONSTRAINTS. Thanks to Maxime Vdb.
 * #5: Add REDSHIFT_VARCHAR_LENGTH_MULTIPLIER settings. Thanks to Maxime Vdb.
 * Support column type changing on migration.

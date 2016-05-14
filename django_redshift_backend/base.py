@@ -9,6 +9,7 @@ from copy import deepcopy
 import re
 import logging
 
+import django
 from django.conf import settings
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -16,7 +17,7 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseOperations as BasePGDatabaseOperations,
     DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
     DatabaseClient,
-    DatabaseCreation,
+    DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
     BaseDatabaseValidation,
 )
@@ -430,14 +431,28 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             self.connection.close()
 
 
+redshift_data_types = {
+    "AutoField": "integer identity(1, 1)",
+    "DateTimeField": "timestamp",
+    "TextField": "varchar(max)",  # text must be varchar(max)
+}
+
+
+class DatabaseCreation(BasePGDatabaseCreation):
+
+    if django.VERSION < (1, 8):
+        data_types = deepcopy(BasePGDatabaseCreation.data_types)
+        data_types.update(redshift_data_types)
+
+
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
 
     SchemaEditorClass = DatabaseSchemaEditor
-    data_types = deepcopy(BasePGDatabaseWrapper.data_types)
-    data_types["AutoField"] = "integer identity(1, 1)"
-    data_types["DateTimeField"] = "timestamp"
-    data_types["TextField"] = "varchar(max)"  # text must be varchar(max)
+
+    if django.VERSION >= (1, 8):
+        data_types = deepcopy(BasePGDatabaseWrapper.data_types)
+        data_types.update(redshift_data_types)
 
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
