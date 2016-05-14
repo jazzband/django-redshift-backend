@@ -16,7 +16,8 @@ Type mapping:
 * 'integer identity(1, 1)' for AutoField
 * 'timestamp' for DateTimeField
 * 'varchar(max)' for TextField
-* Possibility to multiply VARCHAR length to support utf-8 string, using `REDSHIFT_VARCHAR_LENGTH_MULTIPLIER` setting.
+* Possibility to multiply VARCHAR length to support utf-8 string, using
+  `REDSHIFT_VARCHAR_LENGTH_MULTIPLIER` setting.
 
 Stop using:
 
@@ -36,6 +37,14 @@ To support migration:
 
 Please note that the migration support for redshift is not perfect yet.
 
+
+SETTINGS
+========
+
+REDSHIFT_VARCHAR_LENGTH_MULTIPLIER:
+  Possibility to multiply VARCHAR length to support utf-8 string. Default is 1.
+
+
 LICENSE
 =======
 Apache Software License
@@ -48,6 +57,7 @@ CHANGES
 -----
 
 * #4: More compat with redshift: not use SET CONSTRAINTS. Thanks to Maxime Vdb.
+* #5: Add REDSHIFT_VARCHAR_LENGTH_MULTIPLIER settings. Thanks to Maxime Vdb.
 * Support column type changing on migration.
 
 0.3
