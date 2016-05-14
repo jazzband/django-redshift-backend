@@ -4,8 +4,8 @@ Redshift database backend for Django
 
 This product is tested with:
 
-* python-2.7.x
-* django-1.7.6, 1.7.10, 1.8.8
+* python-2.7, 3.5
+* django-1.7, 1.8, 1.9
 
 
 Differences from postgres_psycopg2 backend
@@ -43,6 +43,17 @@ SETTINGS
 
 REDSHIFT_VARCHAR_LENGTH_MULTIPLIER:
   Possibility to multiply VARCHAR length to support utf-8 string. Default is 1.
+
+TESTING
+=======
+
+Testing this package requires:
+
+* tox-1.8 or later
+* virtualenv-15.0.1 or later
+* pip-8.1.1 or later
+
+and `wheelhouse` directory contains psycopg2 manylinux1 wheels for using in each tests.
 
 
 LICENSE

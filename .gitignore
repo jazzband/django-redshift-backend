@@ -1,8 +1,8 @@
-wheelhouse/
 build/
 dist/
 *.egg-info
 *.pyc
 .venv
 .cache
+.tox
 
