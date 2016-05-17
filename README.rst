@@ -70,6 +70,7 @@ CHANGES
 * Support Python-3.4 and 3.5
 * #7: Restore support django-1.7. Version 0.3 doesn't support django-1.7.
 * #4: More compat with redshift: not use SET CONSTRAINTS. Thanks to Maxime Vdb.
+* #6: More compat with redshift: not use sequence reset query. Thanks to Maxime Vdb.
 * #5: Add REDSHIFT_VARCHAR_LENGTH_MULTIPLIER settings. Thanks to Maxime Vdb.
 * Support column type changing on migration.
 
