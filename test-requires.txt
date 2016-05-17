@@ -1,0 +1,7 @@
+-f./wheelhouse
+psycopg2==2.5.5
+pytest
+mock
+docutils
+flake8
+-e.
