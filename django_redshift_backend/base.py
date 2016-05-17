@@ -49,6 +49,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
         # impossible with Redshift to reset a sequence
         return []
 
+
 def _related_non_m2m_objects(old_field, new_field):
     # Filters out m2m objects from reverse relations.
     # Returns (old_relation, new_relation) tuples.
