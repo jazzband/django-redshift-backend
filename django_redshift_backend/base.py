@@ -135,7 +135,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 definition,
             ))
             # Autoincrement SQL (for backends with post table definition variant)
-            if field.get_internal_type() == "AutoField":
+            if field.get_internal_type() in ("AutoField", "BigAutoField"):
                 autoinc_sql = self.connection.ops.autoinc_sql(
                     model._meta.db_table, field.column)
                 if autoinc_sql:
@@ -437,6 +437,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
 redshift_data_types = {
     "AutoField": "integer identity(1, 1)",
+    "BigAutoField": "bigint identity(1, 1)",
     "DateTimeField": "timestamp",
     "TextField": "varchar(max)",  # text must be varchar(max)
 }
