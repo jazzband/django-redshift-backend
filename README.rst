@@ -14,6 +14,7 @@ Differences from postgres_psycopg2 backend
 Type mapping:
 
 * 'integer identity(1, 1)' for AutoField
+* 'bigint identity(1, 1)' for BigAutoField
 * 'timestamp' for DateTimeField
 * 'varchar(max)' for TextField
 * Possibility to multiply VARCHAR length to support utf-8 string, using
@@ -68,6 +69,7 @@ CHANGES
 ----------------
 
 * Support Django-1.10
+* #9: Add support for BigAutoField. Thanks to Maxime Vdb.
 
 0.4 (2016-05-17)
 ----------------
