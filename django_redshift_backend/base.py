@@ -33,6 +33,23 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
 class DatabaseOperations(BasePGDatabaseOperations):
 
     def last_insert_id(self, cursor, table_name, pk_name):
+        """
+        Amazon Redshift doesn't support RETURNING, so this method
+        retrieve MAX(pk) after insertion as a workaround.
+
+        refs:
+        * http://stackoverflow.com/questions/19428860/retrieve-inserted-identity-value-from-aws-redshift-via-jdbc
+        * http://stackoverflow.com/questions/25638539/returning-lastval-of-the-table-in-redshift
+
+        How about ``return cursor.lastrowid`` that is implemented in
+        django.db.backends.base.operations? Unfortunately, it doesn't
+        work too.
+
+        NOTE: in some case, MAX(pk) workaround does not work correctly.
+        Bulk insertion makes non-contiguous IDs like: 1, 4, 7, 10, ...
+        and single insertion after such bulk insertion generates strange
+        id value like 2.
+        """
         cursor.execute('SELECT MAX({pk}) from {table}'.format(
             pk=pk_name, table=self.quote_name(table_name)))
         return cursor.fetchone()[0]
