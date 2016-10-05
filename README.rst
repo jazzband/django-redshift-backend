@@ -44,8 +44,8 @@ Note and Limitation
 Amazon Redshift doesn't support RETURNING, so ``last_insert_id`` method retrieve MAX(pk) after insertion as a workaround.
 
 refs:
-* http://stackoverflow.com/questions/19428860/retrieve-inserted-identity-value-from-aws-redshift-via-jdbc
-* http://stackoverflow.com/questions/25638539/returning-lastval-of-the-table-in-redshift
+* http://stackoverflow.com/q/19428860
+* http://stackoverflow.com/q/25638539
 
 In some case, MAX(pk) workaround does not work correctly.
 Bulk insertion makes non-contiguous IDs like: 1, 4, 7, 10, ...
