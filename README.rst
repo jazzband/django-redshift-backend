@@ -78,7 +78,7 @@ Apache Software License
 CHANGES
 =======
 
-0.5 (Unreleased)
+0.5 (2016-10-05)
 ----------------
 
 * Support Django-1.10
