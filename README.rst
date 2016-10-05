@@ -78,6 +78,9 @@ Apache Software License
 CHANGES
 =======
 
+0.6 (Unreleased)
+----------------
+
 0.5 (2016-10-05)
 ----------------
 
