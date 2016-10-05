@@ -310,13 +310,14 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
             # ## ALTER TABLE <table> ADD COLUMN 'tmp' <type> DEFAULT <value>
             definition, params = self.column_sql(model, new_field, include_default=True)
+            new_defaults = [new_default] if new_default is not None else []
             actions.append((
                 self.sql_create_column % {
                     "table": self.quote_name(model._meta.db_table),
                     "column": self.quote_name(new_field.column + "_tmp"),
                     "definition": definition,
                 },
-                [new_default]
+                new_defaults
             ))
             # ## UPDATE <table> SET 'tmp' = <orig column>
             actions.append((

@@ -70,6 +70,7 @@ CHANGES
 
 * Support Django-1.10
 * #9: Add support for BigAutoField. Thanks to Maxime Vdb.
+* Fix crush problem on sqlmigrate when field modified.
 
 0.4 (2016-05-17)
 ----------------
