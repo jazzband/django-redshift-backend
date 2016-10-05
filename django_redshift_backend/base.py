@@ -38,8 +38,8 @@ class DatabaseOperations(BasePGDatabaseOperations):
         retrieve MAX(pk) after insertion as a workaround.
 
         refs:
-        * http://stackoverflow.com/questions/19428860/retrieve-inserted-identity-value-from-aws-redshift-via-jdbc
-        * http://stackoverflow.com/questions/25638539/returning-lastval-of-the-table-in-redshift
+        * http://stackoverflow.com/q/19428860
+        * http://stackoverflow.com/q/25638539
 
         How about ``return cursor.lastrowid`` that is implemented in
         django.db.backends.base.operations? Unfortunately, it doesn't
