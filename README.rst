@@ -44,6 +44,7 @@ Note and Limitation
 Amazon Redshift doesn't support RETURNING, so ``last_insert_id`` method retrieve MAX(pk) after insertion as a workaround.
 
 refs:
+
 * http://stackoverflow.com/q/19428860
 * http://stackoverflow.com/q/25638539
 
