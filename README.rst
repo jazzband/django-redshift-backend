@@ -55,6 +55,19 @@ and single insertion after such bulk insertion generates strange id value like 2
 SETTINGS
 ========
 
+ENGINE for DATABASES is 'django_redshift_backend'. You can set the name in your settings.py as::
+
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django_redshift_backend',
+           'NAME': '<your database name>',
+           'USER': '<your database username>',
+           'PASSWORD': '<your database password>',
+           'HOST': '<your database hostname>',
+           'PORT': '5439',
+       }
+   }
+
 REDSHIFT_VARCHAR_LENGTH_MULTIPLIER:
   Possibility to multiply VARCHAR length to support utf-8 string. Default is 1.
 
