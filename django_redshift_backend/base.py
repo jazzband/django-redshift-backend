@@ -27,6 +27,7 @@ logger = logging.getLogger('django.db.backends')
 
 class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_id_from_insert = False
+    can_return_ids_from_bulk_insert = False
     has_select_for_update = False
 
 

@@ -22,7 +22,7 @@ Type mapping:
 
 Stop using:
 
-* RETURNING.
+* RETURNING (single insert and bulk insert)
 * SELECT FOR UPDATE
 * SET TIME ZONE
 * SET CONSTRAINTS
@@ -92,8 +92,10 @@ Apache Software License
 CHANGES
 =======
 
-0.6 (Unreleased)
+0.6 (2016-12-15)
 ----------------
+
+* Fix crush problem when using bulk insert.
 
 0.5 (2016-10-05)
 ----------------
