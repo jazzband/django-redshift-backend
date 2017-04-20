@@ -8,5 +8,5 @@ VOLUME /app
 
 RUN pip install -U -r test-requires.txt tox
 
-CMD ["tox", "-e", "flake8,py{27,35}-django{17,18,19,110}"]
+CMD ["tox", "-e", "flake8,py{27,35}-django{17,18,19,110,111}"]
 
