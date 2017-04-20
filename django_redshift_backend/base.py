@@ -11,6 +11,12 @@ import logging
 
 import django
 from django.conf import settings
+try:
+    # Need for Django v1.11+
+    from django.db.backends.base.validation import BaseDatabaseValidation
+except ImportError:
+    # Need for older versions of Django < v1.11
+    from django.db.backends.postgresql_psycopg2.base import BaseDatabaseValidation
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
@@ -19,7 +25,6 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseClient,
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
-    BaseDatabaseValidation,
 )
 
 logger = logging.getLogger('django.db.backends')
