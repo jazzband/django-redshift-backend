@@ -4,7 +4,7 @@ Redshift database backend for Django
 
 This product is tested with:
 
-* python-2.7, 3.4, 3.5
+* python-2.7, 3.5, 3.6
 * django-1.8, 1.9, 1.10, 1.11
 
 
@@ -95,7 +95,9 @@ CHANGES
 0.7 (Unreleased)
 ----------------
 
+* Drop Python-3.4
 * Drop Django-1.7
+* Support Python-3.6
 * Support Django-1.11
 
 0.6 (2016-12-15)
