@@ -13,7 +13,7 @@ def read(filename):
 
 setup(
     name='django-redshift-backend',
-    version='0.7',
+    version='0.8',
     packages=find_packages(),
     url='https://github.com/shimizukawa/django-redshift-backend',
     license='Apache Software License',

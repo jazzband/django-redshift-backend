@@ -92,6 +92,10 @@ Apache Software License
 CHANGES
 =======
 
+0.8 (Unreleased)
+----------------
+
+
 0.7 (2017-06-08)
 ----------------
 
