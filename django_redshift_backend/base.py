@@ -469,6 +469,9 @@ redshift_data_types = {
 class DatabaseCreation(BasePGDatabaseCreation):
     pass
 
+    def set_time_zone_sql(self):
+        return "SELECT 1;"
+
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
