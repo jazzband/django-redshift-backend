@@ -92,7 +92,7 @@ Apache Software License
 CHANGES
 =======
 
-0.7 (Unreleased)
+0.7 (2017-06-08)
 ----------------
 
 * Drop Python-3.4
