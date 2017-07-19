@@ -25,7 +25,6 @@ Stop using:
 
 * RETURNING (single insert and bulk insert)
 * SELECT FOR UPDATE
-* SET TIME ZONE
 * SET CONSTRAINTS
 * INDEX
 * DEFERRABLE INITIALLY DEFERRED
@@ -115,6 +114,7 @@ CHANGES
 * #18: Fix error on migration with django-1.9 or later that raises AttributeError
   of 'sql_create_table_unique'.
 * #24: Add UUIDField support. Thanks to Sindri Guðmundsson.
+* #23 Redshift support time zones in time stamps
 
 0.7 (2017-06-08)
 ----------------
