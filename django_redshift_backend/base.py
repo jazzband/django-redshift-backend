@@ -528,6 +528,6 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
 
     def check_constraints(self, table_names=None):
         """
-        No constraints to check in Redsfhift.
+        No constraints to check in Redshift.
         """
         pass
