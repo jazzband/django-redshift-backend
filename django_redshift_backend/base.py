@@ -463,6 +463,7 @@ redshift_data_types = {
     "BigAutoField": "bigint identity(1, 1)",
     "DateTimeField": "timestamp",
     "TextField": "varchar(max)",  # text must be varchar(max)
+    "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
 }
 
 
