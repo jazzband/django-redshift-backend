@@ -164,11 +164,27 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                     self.deferred_sql.extend(autoinc_sql)
 
         # Add any unique_togethers
-        for fields in model._meta.unique_together:
-            columns = [model._meta.get_field(field).column for field in fields]
-            column_sqls.append(self.sql_create_table_unique % {
-                "columns": ", ".join(self.quote_name(column) for column in columns),
-            })
+        if hasattr(self, 'sql_create_table_unique'):
+            # For django > v1.8
+            for fields in model._meta.unique_together:
+                columns = [
+                    model._meta.get_field(field).column for field in fields
+                ]
+                column_sqls.append(self.sql_create_table_unique % {
+                    "columns": ", ".join(
+                        self.quote_name(column) for column in columns
+                    ),
+                })
+        else:
+            # Add any unique_togethers (always deferred, as some fields might
+            # be created afterwards, like geometry fields with some backends)
+            for fields in model._meta.unique_together:
+                columns = [
+                    model._meta.get_field(field).column for field in fields
+                ]
+                self.deferred_sql.append(
+                    self._create_unique_sql(model, columns)
+                )
         # Make the table
         sql = self.sql_create_table % {
             "table": self.quote_name(model._meta.db_table),
