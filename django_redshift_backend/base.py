@@ -126,7 +126,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     def remove_index(self, model, index):
         pass
 
-
     def create_model(self, model):
         """
         Takes a model and creates a table for it in the database.
