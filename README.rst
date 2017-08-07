@@ -15,7 +15,7 @@ Type mapping:
 
 * 'integer identity(1, 1)' for AutoField
 * 'bigint identity(1, 1)' for BigAutoField
-* 'timestamp' for DateTimeField
+* 'timestamp with time zone' for DateTimeField
 * 'varchar(max)' for TextField
 * 'varchar(32)' for UUIDField
 * Possibility to multiply VARCHAR length to support utf-8 string, using
