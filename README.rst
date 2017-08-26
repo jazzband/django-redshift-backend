@@ -110,6 +110,7 @@ CHANGES
 ----------------
 
 * More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
+* Support for sortkey. Thanks to Maxime Vdb.
 
 0.7 (2017-06-08)
 ----------------
@@ -118,7 +119,6 @@ CHANGES
 * Drop Django-1.7
 * Support Python-3.6
 * Support Django-1.11
-* Support for sortkey
 
 0.6 (2016-12-15)
 ----------------
