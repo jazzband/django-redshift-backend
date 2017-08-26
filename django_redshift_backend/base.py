@@ -33,6 +33,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_id_from_insert = False
     can_return_ids_from_bulk_insert = False
     has_select_for_update = False
+    supports_column_check_constraints = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
@@ -130,10 +131,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                         str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
 
-            # Check constraints can go on the column SQL here
             db_params = field.db_parameters(connection=self.connection)
-            if db_params['check']:
-                definition += " CHECK (%s)" % db_params['check']
             # Autoincrement SQL (for backends with inline variant)
             col_type_suffix = field.db_type_suffix(connection=self.connection)
             if col_type_suffix:
