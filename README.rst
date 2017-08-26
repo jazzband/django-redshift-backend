@@ -109,8 +109,8 @@ CHANGES
 0.8 (Unreleased)
 ----------------
 
-* More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
-* Support for sortkey. Thanks to Maxime Vdb.
+* #15,#21: More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
+* #20: Support for sortkey. Thanks to Maxime Vdb.
 * #18: Fix error on migration with django-1.9 or later that raises AttributeError
   of 'sql_create_table_unique'.
 
