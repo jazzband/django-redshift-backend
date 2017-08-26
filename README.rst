@@ -73,6 +73,19 @@ ENGINE for DATABASES is 'django_redshift_backend'. You can set the name in your 
 REDSHIFT_VARCHAR_LENGTH_MULTIPLIER:
   Possibility to multiply VARCHAR length to support utf-8 string. Default is 1.
 
+Using sortkey
+---------------------------------
+
+There is built-in support for this option for Django >= 1.9. To use `sortkey`, simply define an `ordering` on the model meta as follow::
+
+  class MyModel(models.Model):
+      ...
+
+      class Meta:
+          ordering = ['col2']
+
+N.B.: there is no validation of this option, instead we let Redshift validate it for you. Be sure to refer to the `documentation <http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_examples.html>`_.
+
 TESTING
 =======
 
@@ -105,6 +118,7 @@ CHANGES
 * Drop Django-1.7
 * Support Python-3.6
 * Support Django-1.11
+* Support for sortkey
 
 0.6 (2016-12-15)
 ----------------

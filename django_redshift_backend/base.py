@@ -88,6 +88,8 @@ def _related_non_m2m_objects(old_field, new_field):
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
+    sql_create_table = "CREATE TABLE %(table)s (%(definition)s)%(options)s"
+
     @property
     def multiply_varchar_length(self):
         return int(getattr(settings, "REDSHIFT_VARCHAR_LENGTH_MULTIPLIER", 1))
@@ -170,7 +172,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Make the table
         sql = self.sql_create_table % {
             "table": self.quote_name(model._meta.db_table),
-            "definition": ", ".join(column_sqls)
+            "definition": ", ".join(column_sqls),
+            "options": self._get_create_options(model)
         }
         if model._meta.db_tablespace:
             tablespace_sql = self.connection.ops.tablespace_sql(
@@ -454,6 +457,20 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Reset connection if required
         if self.connection.features.connection_persists_old_columns:
             self.connection.close()
+
+    def _get_create_options(self, model):
+        """
+        Provide options to create the table. Supports:
+            - sortkey
+
+        N.B.: no validation is made on this option, we'll let the Database
+              do the validation for us.
+        """
+        options = ['SORTKEY({})'.format(field) for field in model._meta.ordering]
+        if options:
+            return " " + " ".join(options)
+
+        return ""
 
 
 redshift_data_types = {

@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from django.db.models import Model
-from django.db.models import AutoField, DateTimeField, TextField
+from django.db import models
 
 
-class TestModel(Model):
-    ctime = DateTimeField()
-    text = TextField()
+class TestModel(models.Model):
+    ctime = models.DateTimeField()
+    text = models.TextField()
+
+
+class TestModelWithMetaKeys(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
+    created_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ['created_at']
