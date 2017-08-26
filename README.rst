@@ -29,6 +29,7 @@ Stop using:
 * INDEX
 * DEFERRABLE INITIALLY DEFERRED
 * CONSTRAINT
+* CHECK
 * DROP DEFAULT
 
 To support migration:
@@ -95,6 +96,7 @@ CHANGES
 0.8 (Unreleased)
 ----------------
 
+* More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
 
 0.7 (2017-06-08)
 ----------------
