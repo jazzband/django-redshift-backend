@@ -131,7 +131,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                         str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
 
-            db_params = field.db_parameters(connection=self.connection)
+            field.db_parameters(connection=self.connection)
             # Autoincrement SQL (for backends with inline variant)
             col_type_suffix = field.db_type_suffix(connection=self.connection)
             if col_type_suffix:
