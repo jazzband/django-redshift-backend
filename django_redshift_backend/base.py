@@ -7,6 +7,7 @@ from __future__ import absolute_import
 
 from copy import deepcopy
 import re
+import uuid
 import logging
 
 from django.conf import settings
@@ -72,6 +73,18 @@ class DatabaseOperations(BasePGDatabaseOperations):
     def sequence_reset_sql(self, style, model_list):
         # impossible with Redshift to reset a sequence
         return []
+
+    def get_db_converters(self, expression):
+        converters = super().get_db_converters(expression)
+        internal_type = expression.output_field.get_internal_type()
+        if internal_type == 'UUIDField':
+            converters.append(self.convert_uuidfield_value)
+        return converters
+
+    def convert_uuidfield_value(self, value, expression, connection, context):
+        if value is not None:
+            value = uuid.UUID(value)
+        return value
 
 
 def _related_non_m2m_objects(old_field, new_field):
@@ -488,6 +501,7 @@ redshift_data_types = {
     "BigAutoField": "bigint identity(1, 1)",
     "DateTimeField": "timestamp",
     "TextField": "varchar(max)",  # text must be varchar(max)
+    "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
 }
 
 

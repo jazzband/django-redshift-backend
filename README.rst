@@ -17,6 +17,7 @@ Type mapping:
 * 'bigint identity(1, 1)' for BigAutoField
 * 'timestamp' for DateTimeField
 * 'varchar(max)' for TextField
+* 'varchar(32)' for UUIDField
 * Possibility to multiply VARCHAR length to support utf-8 string, using
   `REDSHIFT_VARCHAR_LENGTH_MULTIPLIER` setting.
 

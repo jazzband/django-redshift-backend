@@ -6,6 +6,7 @@ from django.db import models
 class TestModel(models.Model):
     ctime = models.DateTimeField()
     text = models.TextField()
+    uuid = models.UUIDField()
 
 
 class TestModelWithMetaKeys(models.Model):

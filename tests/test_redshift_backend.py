@@ -26,7 +26,8 @@ expected_ddl_normal = norm_sql(
     u'''CREATE TABLE "testapp_testmodel" (
     "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
     "ctime" timestamp NOT NULL,
-    "text" varchar(max) NOT NULL
+    "text" varchar(max) NOT NULL,
+    "uuid" varchar(32) NOT NULL
 )
 ;''')
 
