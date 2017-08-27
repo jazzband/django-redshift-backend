@@ -11,6 +11,7 @@ import uuid
 import logging
 
 from django.conf import settings
+from django import VERSION as DJANGO_VERSION
 try:
     # Need for Django v1.11+
     from django.db.backends.base.validation import BaseDatabaseValidation
@@ -34,7 +35,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_id_from_insert = False
     can_return_ids_from_bulk_insert = False
     has_select_for_update = False
-    has_native_uuid_field = False
+    supports_column_check_constraints = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
@@ -101,6 +102,8 @@ def _related_non_m2m_objects(old_field, new_field):
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
+    sql_create_table = "CREATE TABLE %(table)s (%(definition)s)%(options)s"
+
     @property
     def multiply_varchar_length(self):
         return int(getattr(settings, "REDSHIFT_VARCHAR_LENGTH_MULTIPLIER", 1))
@@ -150,10 +153,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                         str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
 
-            # Check constraints can go on the column SQL here
-            db_params = field.db_parameters(connection=self.connection)
-            if db_params['check']:
-                definition += " CHECK (%s)" % db_params['check']
+            field.db_parameters(connection=self.connection)
             # Autoincrement SQL (for backends with inline variant)
             col_type_suffix = field.db_type_suffix(connection=self.connection)
             if col_type_suffix:
@@ -183,32 +183,27 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 if autoinc_sql:
                     self.deferred_sql.extend(autoinc_sql)
 
-        # Add any unique_togethers
-        if hasattr(self, 'sql_create_table_unique'):
-            # For django > v1.8
+
+        # see https://github.com/django/django/commit/01ec127bae
+        if DJANGO_VERSION < (1, 9):  # for django-1.8
+            # Add any unique_togethers
             for fields in model._meta.unique_together:
-                columns = [
-                    model._meta.get_field(field).column for field in fields
-                ]
+                columns = [model._meta.get_field(field).column for field in fields]
                 column_sqls.append(self.sql_create_table_unique % {
-                    "columns": ", ".join(
-                        self.quote_name(column) for column in columns
-                    ),
+                    "columns": ", ".join(self.quote_name(column) for column in columns),
                 })
-        else:
+        else:  # for django-1.9 or later
             # Add any unique_togethers (always deferred, as some fields might
             # be created afterwards, like geometry fields with some backends)
             for fields in model._meta.unique_together:
-                columns = [
-                    model._meta.get_field(field).column for field in fields
-                ]
-                self.deferred_sql.append(
-                    self._create_unique_sql(model, columns)
-                )
+                columns = [model._meta.get_field(field).column for field in fields]
+                self.deferred_sql.append(self._create_unique_sql(model, columns))
+
         # Make the table
         sql = self.sql_create_table % {
             "table": self.quote_name(model._meta.db_table),
-            "definition": ", ".join(column_sqls)
+            "definition": ", ".join(column_sqls),
+            "options": self._get_create_options(model)
         }
         if model._meta.db_tablespace:
             tablespace_sql = self.connection.ops.tablespace_sql(
@@ -492,6 +487,20 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Reset connection if required
         if self.connection.features.connection_persists_old_columns:
             self.connection.close()
+
+    def _get_create_options(self, model):
+        """
+        Provide options to create the table. Supports:
+            - sortkey
+
+        N.B.: no validation is made on this option, we'll let the Database
+              do the validation for us.
+        """
+        options = ['SORTKEY({})'.format(field) for field in model._meta.ordering]
+        if options:
+            return " " + " ".join(options)
+
+        return ""
 
 
 redshift_data_types = {

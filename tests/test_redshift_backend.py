@@ -22,7 +22,7 @@ class DatabaseWrapperTest(unittest.TestCase):
         self.assertIsNotNone(db)
 
 
-expected_ddl = norm_sql(
+expected_ddl_normal = norm_sql(
     u'''CREATE TABLE "testapp_testmodel" (
     "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
     "ctime" timestamp NOT NULL,
@@ -31,30 +31,49 @@ expected_ddl = norm_sql(
 )
 ;''')
 
+expected_ddl_meta_keys = norm_sql(
+    u'''CREATE TABLE "testapp_testmodelwithmetakeys" (
+    "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
+    "name" varchar(100) NOT NULL,
+    "age" integer NOT NULL,
+    "created_at" timestamp NOT NULL
+) SORTKEY(created_at)
+;''')
+
 
 class ModelTest(unittest.TestCase):
 
-    @pytest.mark.skipif(django.VERSION >= (1, 9),
-                        reason="Django-1.9 or later doesn't support sql creation")
-    def test_create_table(self):
-        from testapp import models
-        model = models.TestModel
+    def check_model_creation(self, model, expected_ddl):
         conn = connections['default']
         statements, params = conn.creation.sql_create_model(model, no_style(), set())
         sql = norm_sql(''.join(statements))
         self.assertEqual(sql, expected_ddl)
 
+    @pytest.mark.skipif(django.VERSION >= (1, 9),
+                        reason="Django-1.9 or later doesn't support sql creation")
+    def test_create_table(self):
+        from testapp.models import TestModel
+        self.check_model_creation(TestModel, expected_ddl_normal)
+
 
 class MigrationTest(unittest.TestCase):
 
-    @pytest.mark.skipif(django.VERSION < (1, 8),
-                        reason="Django-1.8 or earlier doesn't support migration")
-    def test_create_model(self):
-        from testapp import models
-        model = models.TestModel
+    def check_model_creation(self, model, expected_ddl):
         conn = connections['default']
         schema_editor = conn.schema_editor(collect_sql=True)
         schema_editor.deferred_sql = []
         schema_editor.create_model(model)
         sql = norm_sql(''.join(schema_editor.collected_sql))
         self.assertEqual(sql, expected_ddl)
+
+    @pytest.mark.skipif(django.VERSION < (1, 8),
+                        reason="Django-1.8 or earlier doesn't support migration")
+    def test_create_model(self):
+        from testapp.models import TestModel
+        self.check_model_creation(TestModel, expected_ddl_normal)
+
+    @pytest.mark.skipif(django.VERSION < (1, 8),
+                        reason="Django-1.8 or earlier doesn't support migration")
+    def test_create_table_meta_keys(self):
+        from testapp.models import TestModelWithMetaKeys
+        self.check_model_creation(TestModelWithMetaKeys, expected_ddl_meta_keys)
