@@ -123,12 +123,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     def _create_index_sql(self, model, fields, suffix="", sql=None):
         raise NotImplementedError("Redshift doesn't support INDEX")
 
-    def add_index(self, model, index):
-        pass
-
-    def remove_index(self, model, index):
-        pass
-
     def create_model(self, model):
         """
         Takes a model and creates a table for it in the database.
