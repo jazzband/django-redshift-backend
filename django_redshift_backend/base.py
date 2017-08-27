@@ -183,7 +183,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 if autoinc_sql:
                     self.deferred_sql.extend(autoinc_sql)
 
-
         # see https://github.com/django/django/commit/01ec127bae
         if DJANGO_VERSION < (1, 9):  # for django-1.8
             # Add any unique_togethers
