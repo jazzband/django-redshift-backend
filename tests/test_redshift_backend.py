@@ -25,7 +25,7 @@ class DatabaseWrapperTest(unittest.TestCase):
 expected_ddl_normal = norm_sql(
     u'''CREATE TABLE "testapp_testmodel" (
     "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
-    "ctime" timestamp NOT NULL,
+    "ctime" timestamp with time zone NOT NULL,
     "text" varchar(max) NOT NULL,
     "uuid" varchar(32) NOT NULL
 )
@@ -36,7 +36,7 @@ expected_ddl_meta_keys = norm_sql(
     "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
     "name" varchar(100) NOT NULL,
     "age" integer NOT NULL,
-    "created_at" timestamp NOT NULL
+    "created_at" timestamp with time zone NOT NULL
 ) SORTKEY(created_at)
 ;''')
 

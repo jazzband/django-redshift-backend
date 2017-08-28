@@ -499,7 +499,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 redshift_data_types = {
     "AutoField": "integer identity(1, 1)",
     "BigAutoField": "bigint identity(1, 1)",
-    "DateTimeField": "timestamp",
     "TextField": "varchar(max)",  # text must be varchar(max)
     "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
 }
@@ -527,27 +526,8 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
         self.introspection = DatabaseIntrospection(self)
         self.validation = BaseDatabaseValidation(self)
 
-    def init_connection_state(self):
-        self.connection.set_client_encoding('UTF8')
-
-        tz = self.settings_dict['TIME_ZONE']
-        conn_tz = self.connection.get_parameter_status('TimeZone')
-
-        if tz and conn_tz != tz:
-            logger.debug("TIME_ZONE `%s` is specified and redshift is using `%s`. "
-                         "However, Redshift doesn't support `SET TIME ZONE` command, "
-                         "so redshift backend do nothing.", tz, conn_tz)
-            cursor = self.connection.cursor()
-            try:
-                cursor.execute('SELECT version()')
-            finally:
-                cursor.close()
-            # Commit after setting the time zone (see #17062)
-            if not self.get_autocommit():
-                self.connection.commit()
-
     def check_constraints(self, table_names=None):
         """
-        No constraints to check in Redsfhift.
+        No constraints to check in Redshift.
         """
         pass
