@@ -111,7 +111,15 @@ CHANGES
 
 Incompatible Changes:
 
-* #23,#10 Redshift support time zones in time stamps
+* #23,#10 Redshift support time zones in time stamps for migration
+
+  **IMPORTANT**:
+  With this change, the newly created DateTimeField column will be timestamp
+  with timezone (TIMESTAMPTZ) by migration. Therefore, the existing
+  DateTimeField and the new DateTimeField will have different data types as a
+  redshift schema column type.
+  There are no migration feature by django-redshift-backend.
+  see also: https://github.com/shimizukawa/django-redshift-backend/pull/23
 
 New Features:
 
