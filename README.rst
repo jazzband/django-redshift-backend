@@ -109,12 +109,20 @@ CHANGES
 0.8 (Unreleased)
 ----------------
 
-* #15,#21: More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
+Incompatible Changes:
+
+* #23,#10 Redshift support time zones in time stamps
+
+New Features:
+
 * #20: Support for sortkey. Thanks to Maxime Vdb.
+* #24: Add UUIDField support. Thanks to Sindri Guðmundsson.
+
+Bug Fixes:
+
+* #15,#21: More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
 * #18: Fix error on migration with django-1.9 or later that raises AttributeError
   of 'sql_create_table_unique'.
-* #24: Add UUIDField support. Thanks to Sindri Guðmundsson.
-* #23 Redshift support time zones in time stamps
 
 0.7 (2017-06-08)
 ----------------
