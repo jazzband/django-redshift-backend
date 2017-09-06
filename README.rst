@@ -25,6 +25,7 @@ Stop using:
 
 * RETURNING (single insert and bulk insert)
 * SELECT FOR UPDATE
+* SELECT DISTINCT ON
 * SET CONSTRAINTS
 * INDEX
 * DEFERRABLE INITIALLY DEFERRED
@@ -125,6 +126,7 @@ New Features:
 
 * #20: Support for sortkey. Thanks to Maxime Vdb.
 * #24: Add UUIDField support. Thanks to Sindri Guðmundsson.
+* #14: More compat with redshift: not use SELECT DISTINCT ON.
 
 Bug Fixes:
 

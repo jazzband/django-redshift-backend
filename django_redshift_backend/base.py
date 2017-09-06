@@ -36,6 +36,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_ids_from_bulk_insert = False
     has_select_for_update = False
     supports_column_check_constraints = False
+    can_distinct_on_fields = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
@@ -85,6 +86,15 @@ class DatabaseOperations(BasePGDatabaseOperations):
         if value is not None:
             value = uuid.UUID(value)
         return value
+
+    def distinct_sql(self, fields):
+        if fields:
+            # https://github.com/shimizukawa/django-redshift-backend/issues/14
+            # Redshift doesn't support DISTINCT ON
+            raise NotImplementedError('DISTINCT ON fields is not supported '
+                                      'by this database backend')
+        else:
+            return 'DISTINCT'
 
 
 def _related_non_m2m_objects(old_field, new_field):
