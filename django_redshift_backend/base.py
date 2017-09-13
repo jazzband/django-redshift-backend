@@ -501,7 +501,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         """
         if not model._meta.ordering:
             return ""
-        normilized_fields = [field.strip('-') for field in model._meta.ordering]
+        normilized_fields = [self.connection.ops.quote_name(field.strip('-')) for field in model._meta.ordering]
         return " SORTKEY({fields})".format(fields=', '.join(normilized_fields))
 
 
