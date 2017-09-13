@@ -15,4 +15,4 @@ class TestModelWithMetaKeys(models.Model):
     created_at = models.DateTimeField()
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['created_at', '-id']

@@ -37,7 +37,7 @@ expected_ddl_meta_keys = norm_sql(
     "name" varchar(100) NOT NULL,
     "age" integer NOT NULL,
     "created_at" timestamp with time zone NOT NULL
-) SORTKEY(created_at)
+) SORTKEY(created_at, id)
 ;''')
 
 

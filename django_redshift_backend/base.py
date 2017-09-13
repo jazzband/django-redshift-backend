@@ -499,11 +499,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         N.B.: no validation is made on this option, we'll let the Database
               do the validation for us.
         """
-        options = ['SORTKEY({})'.format(field) for field in model._meta.ordering]
-        if options:
-            return " " + " ".join(options)
-
-        return ""
+        if not model._meta.ordering:
+            return ""
+        normilized_fields = [field.strip('-') for field in model._meta.ordering]
+        return " SORTKEY({fields})".format(fields=', '.join(normilized_fields))
 
 
 redshift_data_types = {
