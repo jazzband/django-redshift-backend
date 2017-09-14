@@ -124,7 +124,7 @@ Incompatible Changes:
 
 New Features:
 
-* #20: Support for sortkey. Thanks to Maxime Vdb.
+* #20,#26: Support for sortkey. Thanks to Maxime Vdb and Kosei Kitahara.
 * #24: Add UUIDField support. Thanks to Sindri Guðmundsson.
 * #14: More compat with redshift: not use SELECT DISTINCT ON.
 
