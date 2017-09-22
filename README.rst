@@ -133,6 +133,7 @@ Bug Fixes:
 * #15,#21: More compat with redshift: not use CHECK. Thanks to Vasil Vangelovski.
 * #18: Fix error on migration with django-1.9 or later that raises AttributeError
   of 'sql_create_table_unique'.
+* #27: annotate() does not work on Django-1.9 and later. Thanks to Takayuki Hirai.
 
 0.7 (2017-06-08)
 ----------------
