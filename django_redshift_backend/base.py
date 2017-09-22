@@ -37,6 +37,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     has_select_for_update = False
     supports_column_check_constraints = False
     can_distinct_on_fields = False
+    allows_group_by_selected_pks = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
