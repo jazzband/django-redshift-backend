@@ -16,3 +16,12 @@ class TestModelWithMetaKeys(models.Model):
 
     class Meta:
         ordering = ['created_at', '-id']
+
+
+class TestParentModel(models.Model):
+    age = models.IntegerField()
+
+
+class TestChildModel(models.Model):
+    parent = models.ForeignKey(TestParentModel)
+    age = models.IntegerField()

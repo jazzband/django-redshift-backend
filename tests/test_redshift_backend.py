@@ -41,6 +41,20 @@ expected_ddl_meta_keys = norm_sql(
 ;''')
 
 
+expected_dml_annotate = norm_sql(
+    u'''SELECT
+    "testapp_testparentmodel"."id",
+    "testapp_testparentmodel"."age",
+    COUNT("testapp_testchildmodel"."id") AS "cnt"
+    FROM "testapp_testparentmodel"
+    LEFT OUTER JOIN "testapp_testchildmodel"
+    ON ("testapp_testparentmodel"."id" = "testapp_testchildmodel"."parent_id")
+    GROUP BY
+    "testapp_testparentmodel"."id",
+    "testapp_testparentmodel"."age"
+''')
+
+
 class ModelTest(unittest.TestCase):
 
     def check_model_creation(self, model, expected_ddl):
@@ -54,6 +68,14 @@ class ModelTest(unittest.TestCase):
     def test_create_table(self):
         from testapp.models import TestModel
         self.check_model_creation(TestModel, expected_ddl_normal)
+
+    def test_annotate(self):
+        from django.db.models import Count
+        from testapp.models import TestParentModel
+        query = TestParentModel.objects.annotate(cnt=Count('testchildmodel')).query
+        compiler = query.get_compiler(using='default')
+        sql = norm_sql(compiler.as_sql()[0])
+        self.assertEqual(sql, expected_dml_annotate)
 
 
 class MigrationTest(unittest.TestCase):
