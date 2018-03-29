@@ -160,9 +160,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 definition += " %s" % col_type_suffix
             params.extend(extra_params)
             # FK
-            if field.rel and field.db_constraint:
-                to_table = field.rel.to._meta.db_table
-                to_column = field.rel.to._meta.get_field(field.rel.field_name).column
+            if field.remote_field and field.db_constraint:
+                to_table = field.remote_field.to._meta.db_table
+                to_column = field.remote_field.to._meta.get_field(
+                    field.remote_field.field_name).column
                 if self.connection.features.supports_foreign_keys:
                     self.deferred_sql.append(self._create_fk_sql(
                         model, field, "_fk_%(to_table)s_%(to_column)s"))
@@ -209,8 +210,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # Make M2M tables
         for field in model._meta.local_many_to_many:
-            if field.rel.through._meta.auto_created:
-                self.create_model(field.rel.through)
+            if field.remote_field.through._meta.auto_created:
+                self.create_model(field.remote_field.through)
 
     def add_field(self, model, field):
         """
@@ -219,8 +220,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         table instead (for M2M fields)
         """
         # Special-case implicit M2M tables
-        if field.many_to_many and field.rel.through._meta.auto_created:
-            return self.create_model(field.rel.through)
+        if field.many_to_many and field.remote_field.through._meta.auto_created:
+            return self.create_model(field.remote_field.through)
 
         # Get the column's definition
         # ## To add column to existent table on Redshift, field.null must be allowed
@@ -248,7 +249,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # ## Redshift doesn't support INDEX.
 
         # Add any FK constraints later
-        if (field.rel and
+        if (field.remote_field and
                 self.connection.features.supports_foreign_keys and
                 field.db_constraint):
             self.deferred_sql.append(
@@ -263,7 +264,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # Drop any FK constraints, we'll remake them later
         fks_dropped = set()
-        if old_field.rel and old_field.db_constraint:
+        if old_field.remote_field and old_field.db_constraint:
             fk_names = self._constraint_names(model, [old_field.column], foreign_key=True)
             if strict and len(fk_names) != 1:
                 raise ValueError(

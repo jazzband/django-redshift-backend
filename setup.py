@@ -33,6 +33,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
         'Intended Audience :: Developers',
         'Environment :: Plugins',
         'Topic :: Software Development :: Libraries :: Python Modules',
