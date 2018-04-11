@@ -135,6 +135,12 @@ Bug Fixes:
   of 'sql_create_table_unique'.
 * #27: annotate() does not work on Django-1.9 and later. Thanks to Takayuki Hirai.
 
+
+Documentation:
+
+* Add documentation: http://django-redshift-backend.rtfd.io/
+
+
 0.7 (2017-06-08)
 ----------------
 
