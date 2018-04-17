@@ -23,5 +23,5 @@ class TestParentModel(models.Model):
 
 
 class TestChildModel(models.Model):
-    parent = models.ForeignKey(TestParentModel)
+    parent = models.ForeignKey(TestParentModel, on_delete=models.CASCADE)
     age = models.IntegerField()

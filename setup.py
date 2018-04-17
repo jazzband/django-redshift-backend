@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'django',
+    'Django>=1.11',
     'psycopg2',
 ]
 
@@ -32,10 +32,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Framework :: Django',
-        'Framework :: Django :: 1.8',
-        'Framework :: Django :: 1.9',
-        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
         'Intended Audience :: Developers',
         'Environment :: Plugins',
         'Topic :: Software Development :: Libraries :: Python Modules',

@@ -5,8 +5,7 @@ Redshift database backend for Django
 This product is tested with:
 
 * python-2.7, 3.5, 3.6
-* django-1.8, 1.9, 1.10, 1.11
-
+* django-1.11,2.0
 
 Differences from postgres_psycopg2 backend
 ==========================================
@@ -54,7 +53,6 @@ In some case, MAX(pk) workaround does not work correctly.
 Bulk insertion makes non-contiguous IDs like: 1, 4, 7, 10, ...
 and single insertion after such bulk insertion generates strange id value like 2 (smallest non-used id).
 
-
 SETTINGS
 ========
 
@@ -98,11 +96,9 @@ Testing this package requires:
 
 and `wheelhouse` directory contains psycopg2 manylinux1 wheels for using in each tests.
 
-
 LICENSE
 =======
 Apache Software License
-
 
 CHANGES
 =======
@@ -135,11 +131,9 @@ Bug Fixes:
   of 'sql_create_table_unique'.
 * #27: annotate() does not work on Django-1.9 and later. Thanks to Takayuki Hirai.
 
-
 Documentation:
 
 * Add documentation: http://django-redshift-backend.rtfd.io/
-
 
 0.7 (2017-06-08)
 ----------------
@@ -178,7 +172,6 @@ Documentation:
 * More compat with redshift: add TextField
 * More compat with redshift: not use DEFERRABLE, CONSTRAINT, DROP DEFAULT
 * More compat with redshift: support modify column
-
 
 0.2.1 (2016-02-01)
 ------------------
