@@ -22,6 +22,7 @@ setup(
     description='Redshift database backend for Django',
     long_description=read('README.rst'),
     install_requires=requires,
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',
