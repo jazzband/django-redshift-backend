@@ -1,5 +1,4 @@
--f./wheelhouse
-psycopg2==2.5.5
+psycopg2==2.7.4
 pytest
 mock
 docutils<0.13  # 0.13 + py27 cause 'setup.py check' error. see: https://bugs.python.org/issue23063
