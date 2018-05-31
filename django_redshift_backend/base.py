@@ -11,13 +11,7 @@ import uuid
 import logging
 
 from django.conf import settings
-from django import VERSION as DJANGO_VERSION
-try:
-    # Need for Django v1.11+
-    from django.db.backends.base.validation import BaseDatabaseValidation
-except ImportError:
-    # Need for older versions of Django < v1.11
-    from django.db.backends.postgresql_psycopg2.base import BaseDatabaseValidation
+from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
@@ -188,20 +182,11 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 if autoinc_sql:
                     self.deferred_sql.extend(autoinc_sql)
 
-        # see https://github.com/django/django/commit/01ec127bae
-        if DJANGO_VERSION < (1, 9):  # for django-1.8
-            # Add any unique_togethers
-            for fields in model._meta.unique_together:
-                columns = [model._meta.get_field(field).column for field in fields]
-                column_sqls.append(self.sql_create_table_unique % {
-                    "columns": ", ".join(self.quote_name(column) for column in columns),
-                })
-        else:  # for django-1.9 or later
-            # Add any unique_togethers (always deferred, as some fields might
-            # be created afterwards, like geometry fields with some backends)
-            for fields in model._meta.unique_together:
-                columns = [model._meta.get_field(field).column for field in fields]
-                self.deferred_sql.append(self._create_unique_sql(model, columns))
+        # Add any unique_togethers (always deferred, as some fields might
+        # be created afterwards, like geometry fields with some backends)
+        for fields in model._meta.unique_together:
+            columns = [model._meta.get_field(field).column for field in fields]
+            self.deferred_sql.append(self._create_unique_sql(model, columns))
 
         # Make the table
         sql = self.sql_create_table % {
