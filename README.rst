@@ -107,7 +107,7 @@ Apache Software License
 CHANGES
 =======
 
-0.8 (Unreleased)
+0.8 (2018-06-01)
 ----------------
 
 Incompatible Changes:
