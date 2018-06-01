@@ -2,10 +2,8 @@
 
 import unittest
 
-import django
 from django.db import connections
 from django.core.management.color import no_style
-import pytest
 
 
 def norm_sql(sql):
@@ -63,12 +61,6 @@ class ModelTest(unittest.TestCase):
         sql = norm_sql(''.join(statements))
         self.assertEqual(sql, expected_ddl)
 
-    @pytest.mark.skipif(django.VERSION >= (1, 9),
-                        reason="Django-1.9 or later doesn't support sql creation")
-    def test_create_table(self):
-        from testapp.models import TestModel
-        self.check_model_creation(TestModel, expected_ddl_normal)
-
     def test_annotate(self):
         from django.db.models import Count
         from testapp.models import TestParentModel
@@ -88,14 +80,10 @@ class MigrationTest(unittest.TestCase):
         sql = norm_sql(''.join(schema_editor.collected_sql))
         self.assertEqual(sql, expected_ddl)
 
-    @pytest.mark.skipif(django.VERSION < (1, 8),
-                        reason="Django-1.8 or earlier doesn't support migration")
     def test_create_model(self):
         from testapp.models import TestModel
         self.check_model_creation(TestModel, expected_ddl_normal)
 
-    @pytest.mark.skipif(django.VERSION < (1, 8),
-                        reason="Django-1.8 or earlier doesn't support migration")
     def test_create_table_meta_keys(self):
         from testapp.models import TestModelWithMetaKeys
         self.check_model_creation(TestModelWithMetaKeys, expected_ddl_meta_keys)
