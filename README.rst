@@ -5,7 +5,7 @@ Redshift database backend for Django
 This product is tested with:
 
 * python-2.7, 3.5, 3.6
-* django-1.8, 1.9, 1.10, 1.11
+* django-1.11
 
 
 Differences from postgres_psycopg2 backend
@@ -96,9 +96,6 @@ Testing this package requires:
 * virtualenv-15.0.1 or later
 * pip-8.1.1 or later
 
-and `wheelhouse` directory contains psycopg2 manylinux1 wheels for using in each tests.
-
-
 LICENSE
 =======
 Apache Software License
@@ -110,6 +107,7 @@ CHANGES
 0.9 (Unreleased)
 ----------------
 
+* Drop support for Django 1.8, 1.9 and 1.10
 
 0.8 (2018-06-01)
 ----------------
