@@ -77,7 +77,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
         return []
 
     def get_db_converters(self, expression):
-        converters = super().get_db_converters(expression)
+        converters = super(DatabaseOperations, self).get_db_converters(expression)
         internal_type = expression.output_field.get_internal_type()
         if internal_type == 'UUIDField':
             converters.append(self.convert_uuidfield_value)
