@@ -109,6 +109,12 @@ CHANGES
 
 * Drop support for Django 1.8, 1.9 and 1.10
 
+
+0.8.1 (2018-06-19)
+------------------
+
+* #38: Fix 0.8 doesn't compatible with Python 2. Thanks to Benjy Weinberger.
+
 0.8 (2018-06-01)
 ----------------
 
