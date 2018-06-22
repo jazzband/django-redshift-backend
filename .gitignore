@@ -6,3 +6,4 @@ dist/
 .cache
 .tox
 .pytest_cache/
+doc/_build/
