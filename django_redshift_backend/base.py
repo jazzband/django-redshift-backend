@@ -449,7 +449,9 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 self.execute(sql, params)
         # Does it have a foreign key?
         if (new_field.remote_field and
-                (fks_dropped or not old_field.remote_field or not old_field.db_constraint) and
+                (fks_dropped or
+                    not old_field.remote_field or
+                    not old_field.db_constraint) and
                 new_field.db_constraint):
             self.execute(self._create_fk_sql(
                 model, new_field, "_fk_%(to_table)s_%(to_column)s"))
