@@ -163,7 +163,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 to_table = field.remote_field.to._meta.db_table
                 to_column = field.remote_field.to._meta.get_field(
                     field.remote_field.field_name).column
-                to_column = field.rel.to._meta.get_field(field.rel.field_name).column
                 if self.connection.features.supports_foreign_keys:
                     self.deferred_sql.append(self._create_fk_sql(
                         model, field, "_fk_%(to_table)s_%(to_column)s"))
@@ -220,8 +219,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         table instead (for M2M fields)
         """
         # Special-case implicit M2M tables
-        if field.many_to_many and field.rel.through._meta.auto_created:
-            return self.create_model(field.rel.through)
+        if field.many_to_many and field.remote_field.through._meta.auto_created:
+            return self.create_model(field.remote_field.through)
 
         # Get the column's definition
         # ## To add column to existent table on Redshift, field.null must be allowed
@@ -449,8 +448,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             for sql, params in other_actions:
                 self.execute(sql, params)
         # Does it have a foreign key?
-        if (new_field.rel and
-                (fks_dropped or not old_field.rel or not old_field.db_constraint) and
+        if (new_field.remote_field and
+                (fks_dropped or not old_field.remote_field or not old_field.db_constraint) and
                 new_field.db_constraint):
             self.execute(self._create_fk_sql(
                 model, new_field, "_fk_%(to_table)s_%(to_column)s"))
