@@ -5,7 +5,7 @@ Redshift database backend for Django
 This product is tested with:
 
 * python-2.7, 3.5, 3.6
-* django-1.11
+* django-1.11, 2.0
 
 
 Differences from postgres_psycopg2 backend
