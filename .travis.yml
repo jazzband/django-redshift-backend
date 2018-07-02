@@ -4,23 +4,21 @@ cache: pip
 matrix:
   fast_finish: true
   include:
-  - python: 2.7
-    env: DJANGO_VERSION=1.11.*
-  - python: 3.5
-    env: DJANGO_VERSION=1.11.*
-  - python: 3.6
-    env: DJANGO_VERSION=1.11.*
-  - python: 3.5
-    env: DJANGO_VERSION=2.0.*
-  - python: 3.6
-    env: DJANGO_VERSION=2.0.*
+  - env: TOX_ENV=py27-dj111
+    python: 2.7
+  - env: TOX_ENV=py35-dj111
+    python: 3.5
+  - env: TOX_ENV=py36-dj111
+    python: 3.6
+  - env: TOX_ENV=py35-dj20
+    python: 3.5
+  - env: TOX_ENV=py36-dj20
+    python: 3.6
+  - env: TOX_ENV=flake8
+    python: 3.6
+  - env: TOX_ENV=readme
+    python: 3.6
 install:
-  - pip install -U pip
-  - pip install -U setuptools
-  - pip install django==$DJANGO_VERSION
-  - pip install -U -r test-requires.txt
-before_script: flake8 django_redshift_backend
+- pip install -U pip setuptools tox
 script:
-  - py.test
-  - python setup.py sdist bdist_wheel
-  - python setup.py check -s -r
+- tox -e "${TOX_ENV}"
