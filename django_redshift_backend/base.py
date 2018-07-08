@@ -11,6 +11,7 @@ import uuid
 import logging
 
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -496,7 +497,12 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         """
         def quoted_column_name(field_name):
             # We strip the '-' that may precede the field name in an `ordering` specification.
-            colname = model._meta.get_field(field_name.strip('-')).get_attname_column()[1]
+            try:
+              colname = model._meta.get_field(field_name.strip('-')).get_attname_column()[1]
+            except FieldDoesNotExist:
+                # Out of an abundance of caution - e.g., so that you get a more appropriate
+                # error message higher up the stack.
+                colname = field_name
             return self.connection.ops.quote_name(colname)
 
         create_options = []
