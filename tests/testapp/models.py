@@ -2,6 +2,8 @@
 
 from django.db import models
 
+from django_redshift_backend.base import DistKey
+
 
 class TestModel(models.Model):
     ctime = models.DateTimeField()
@@ -9,12 +11,18 @@ class TestModel(models.Model):
     uuid = models.UUIDField()
 
 
+class TestReferencedModel(models.Model):
+    id = models.IntegerField()
+
+
 class TestModelWithMetaKeys(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     created_at = models.DateTimeField()
+    fk = models.ForeignKey(TestReferencedModel)
 
     class Meta:
+        indexes = [DistKey(fields=['fk'])]
         ordering = ['created_at', '-id']
 
 
