@@ -19,7 +19,7 @@ class TestModelWithMetaKeys(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     created_at = models.DateTimeField()
-    fk = models.ForeignKey(TestReferencedModel)
+    fk = models.ForeignKey(TestReferencedModel, on_delete=models.CASCADE)
 
     class Meta:
         indexes = [DistKey(fields=['fk'])]
