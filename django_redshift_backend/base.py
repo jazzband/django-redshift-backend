@@ -22,7 +22,9 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
 )
-from django.db.models import Index
+
+from django_redshift_backend.distkey import DistKey
+
 
 logger = logging.getLogger('django.db.backends')
 
@@ -105,10 +107,6 @@ def _related_non_m2m_objects(old_field, new_field):
          for obj in new_field.model._meta.related_objects
          if not obj.field.many_to_many)
     )
-
-
-class DistKey(Index):
-    pass
 
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
@@ -496,12 +494,14 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
               do the validation for us.
         """
         def quoted_column_name(field_name):
-            # We strip the '-' that may precede the field name in an `ordering` specification.
+            # We strip the '-' that may precede the field name in an `ordering`
+            # specification.
             try:
-              colname = model._meta.get_field(field_name.strip('-')).get_attname_column()[1]
+                colname = model._meta.get_field(
+                    field_name.strip('-')).get_attname_column()[1]
             except FieldDoesNotExist:
-                # Out of an abundance of caution - e.g., so that you get a more appropriate
-                # error message higher up the stack.
+                # Out of an abundance of caution - e.g., so that you get a more
+                # appropriate error message higher up the stack.
                 colname = field_name
             return self.connection.ops.quote_name(colname)
 
