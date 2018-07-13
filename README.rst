@@ -91,7 +91,7 @@ Using distkey
 ---------------------------------
 
 There is built-in support for this option for Django >= 1.11. To use `distkey`, define an index on the model
-meta with the custom index type `django_redshift_backend.base.DistKey` with `fields` naming a single field::
+meta with the custom index type `django_redshift_backend.distkey.DistKey` with `fields` naming a single field::
 
   class MyModel(models.Model):
       ...
@@ -128,7 +128,7 @@ That is, to go from::
        ...
        migrations.AddIndex(
             model_name='facttable',
-            index=django_redshift_backend.base.DistKey(fields=['distkeycol'], name='...'),
+            index=django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...'),
         ),
     ]
 
@@ -145,7 +145,7 @@ To::
                 ...
             ],
             options={
-                'indexes': [django_redshift_backend.base.DistKey(fields=['distkeycol'], name='...')],
+                'indexes': [django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...')],
             },
         ),
        ...
