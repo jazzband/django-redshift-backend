@@ -238,8 +238,9 @@ CHANGES
 0.9 (Unreleased)
 ----------------
 
-* Drop support for Django 1.8, 1.9 and 1.10
-
+* #35: Drop support for Django 1.8, 1.9 and 1.10.
+* #40: Support Django 2.0.
+* #42: Support DISTKEY. Thanks to Benjy Weinberger.
 
 0.8.1 (2018-06-19)
 ------------------
@@ -251,7 +252,7 @@ CHANGES
 
 Incompatible Changes:
 
-* #23,#10 Redshift support time zones in time stamps for migration
+* #23,#10: Redshift support time zones in time stamps for migration
 
   **IMPORTANT**:
   With this change, the newly created DateTimeField column will be timestamp
