@@ -87,6 +87,137 @@ There is built-in support for this option for Django >= 1.9. To use `sortkey`, s
 
 N.B.: there is no validation of this option, instead we let Redshift validate it for you. Be sure to refer to the `documentation <http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_examples.html>`_.
 
+Using distkey
+---------------------------------
+
+There is built-in support for this option for Django >= 1.11. To use `distkey`, define an index on the model
+meta with the custom index type `django_redshift_backend.distkey.DistKey` with `fields` naming a single field::
+
+  class MyModel(models.Model):
+      ...
+
+      class Meta:
+          indexes = [DistKey(fields=['customer_id'])]
+
+Redshift doesn't have conventional indexes, and we don't generate SQL for them. We merely use
+`indexes` as a convenient place in the Meta to identify the `distkey`.
+
+You will likely encounter the following complication:
+
+Inlining Index Migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Django's `makemigrations` generates a migration file that first applies a `CreateModel` operation without the
+`indexes` option, and then adds the index in a separate `AddIndex` operation.
+
+However Redshift requires that the `distkey` be specified at table creation. As a result, you may need to
+manually edit your migration files to move the index creation into the initial `CreateModel`.
+
+That is, to go from::
+
+    operations = [
+        ...
+        migrations.CreateModel(
+            name='FactTable',
+            fields=[
+                ('distkeycol', models.CharField()),
+                ('measure1', models.IntegerField()),
+                ('measure2', models.IntegerField())
+                ...
+            ]
+        ),
+       ...
+       migrations.AddIndex(
+            model_name='facttable',
+            index=django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...'),
+        ),
+    ]
+
+To::
+
+    operations = [
+        ...
+        migrations.CreateModel(
+            name='FactTable',
+            fields=[
+                ('distkeycol', models.CharField()),
+                ('measure1', models.IntegerField()),
+                ('measure2', models.IntegerField())
+                ...
+            ],
+            options={
+                'indexes': [django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...')],
+            },
+        ),
+       ...
+    ]
+
+
+Inlining ForeignKey Migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+It is common to distribute fact tables on a foreign key column referencing the primary key of a dimension table.
+
+In this case you may also encounter the following added complication:
+
+Django's `makemigrations` generates a migration file that first applies a `CreateModel` operation without the
+`ForeignKey` column, and then adds the `ForeignKey` column in a separate `AddField` operation.  It does this to
+avoid attempts to create foreign key constraints against tables that haven't been created yet.
+
+However Redshift requires that the `distkey` be specified at table creation. As a result, you may need to
+manually edit your migration files to move the ForeignKey column into the initial `CreateModel`, while also
+ensuring that the referenced table appears *before* the referencing table in the file.
+
+That is, to go from::
+
+    operations = [
+        ...
+        migrations.CreateModel(
+            name='FactTable',
+            fields=[
+                ('measure1', models.IntegerField()),
+                ('measure2', models.IntegerField())
+                ...
+            ]
+        ),
+       ...
+       migrations.CreateModel(
+            name='Dimension1Table',
+            fields=[
+                ...
+            ]
+        ),
+        ...
+        migrations.AddField(
+            model_name='facttable',
+            name='dim1',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='myapp.Dimension1Table'),
+        ),
+        ...
+    ]
+
+To::
+
+    operations = [
+       migrations.CreateModel(
+            name='Dimension1Table',
+            fields=[
+                ...
+            ]
+        ),
+        ...
+        migrations.CreateModel(
+            name='FactTable',
+            fields=[
+                ('measure1', models.IntegerField()),
+                ('measure2', models.IntegerField()),
+                ('dim1', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='myapp.Dimension1Table'))
+                ...
+            ]
+        ),
+        ...
+    ]
+
+
+
 TESTING
 =======
 

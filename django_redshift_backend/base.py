@@ -11,6 +11,7 @@ import uuid
 import logging
 
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.postgresql_psycopg2.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -21,6 +22,9 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
 )
+
+from django_redshift_backend.distkey import DistKey
+
 
 logger = logging.getLogger('django.db.backends')
 
@@ -107,7 +111,7 @@ def _related_non_m2m_objects(old_field, new_field):
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
-    sql_create_table = "CREATE TABLE %(table)s (%(definition)s)%(options)s"
+    sql_create_table = "CREATE TABLE %(table)s (%(definition)s) %(options)s"
 
     @property
     def multiply_varchar_length(self):
@@ -483,18 +487,53 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     def _get_create_options(self, model):
         """
         Provide options to create the table. Supports:
+            - distkey
             - sortkey
 
-        N.B.: no validation is made on this option, we'll let the Database
+        N.B.: no validation is made on these options, we'll let the Database
               do the validation for us.
         """
-        if not model._meta.ordering:
-            return ""
-        normilized_fields = [
-            self.connection.ops.quote_name(field.strip('-'))
-            for field in model._meta.ordering
-        ]
-        return " SORTKEY({fields})".format(fields=', '.join(normilized_fields))
+        def quoted_column_name(field_name):
+            # We strip the '-' that may precede the field name in an `ordering`
+            # specification.
+            try:
+                colname = model._meta.get_field(
+                    field_name.strip('-')).get_attname_column()[1]
+            except FieldDoesNotExist:
+                # Out of an abundance of caution - e.g., so that you get a more
+                # appropriate error message higher up the stack.
+                colname = field_name
+            return self.connection.ops.quote_name(colname)
+
+        create_options = []
+
+        distkey = None
+        for idx in model._meta.indexes:
+            if isinstance(idx, DistKey):
+                if distkey:
+                    raise ValueError("Model {} has more than one DistKey.".format(
+                        model.__name__))
+                distkey = idx
+        if distkey:
+            # It would be nicer to enforce this by having DistKey's ctor accept exactly
+            # one field. However overriding the superclass Index ctor causes problems
+            # with migrations, so we validate here instead.
+            if len(distkey.fields) != 1:
+                raise ValueError('DistKey on model {} must have exactly '
+                                 'one field.'.format(model.__name__))
+            normalized_field = quoted_column_name(distkey.fields[0])
+            create_options.append("DISTKEY({})".format(normalized_field))
+            # TODO: Support DISTSTYLE ALL.
+
+        if model._meta.ordering:
+            normalized_fields = [
+                quoted_column_name(field)
+                for field in model._meta.ordering
+            ]
+            create_options.append("SORTKEY({fields})".format(
+                fields=', '.join(normalized_fields)))
+
+        return " ".join(create_options)
 
 
 redshift_data_types = {

@@ -5,4 +5,4 @@ dist/
 .venv
 .cache
 .tox
-
+.pytest_cache/
