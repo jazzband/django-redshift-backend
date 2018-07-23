@@ -1,8 +1,16 @@
-====================================
-Redshift database backend for Django
-====================================
+=====
+Basic
+=====
 
-This is a Redshift database backend for Django.
+Installation
+============
+
+Please install django-redshift-backend with using pip (8.1.1 or later).
+
+.. code-block:: bash
+
+   $ pip install django-redshift-backend
+
 
 Django settings
 ===============
@@ -20,14 +28,6 @@ ENGINE for DATABASES is 'django_redshift_backend'. You can set the name in your 
        }
    }
 
-For more information, please refer: http://django-redshift-backend.rtfd.io/
-
-
-LICENSE
-=======
-Apache Software License
-
-
-.. CHANGES.rst will be concatenated here by setup.py
+For more information, please refer :doc:`refs`.
 
 
