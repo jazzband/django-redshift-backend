@@ -2,7 +2,10 @@
 Redshift database backend for Django
 ====================================
 
-This is a Redshift database backend for Django.
+This is a `Amazon Redshift`_ database backend for Django_.
+
+.. _Amazon Redshift: https://aws.amazon.com/jp/redshift/
+.. _Django: https://www.djangoproject.com/
 
 Django settings
 ===============

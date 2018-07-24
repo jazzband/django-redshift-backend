@@ -2,20 +2,26 @@
 Django Redshift Backend
 =======================
 
-This is a Redshift database backend for Django.
+This is a `Amazon Redshift`_ database backend for Django_.
+
+.. _Amazon Redshift: https://aws.amazon.com/jp/redshift/
+.. _Django: https://www.djangoproject.com/
 
 Support versions
 ================
 
 This product is tested with:
 
-* python-2.7, 3.5, 3.6
-* django-1.11, 2.0
+* Python-2.7, 3.5, 3.6
+* Django-1.11, 2.0
 
-LICENSE
+License
 =======
 Apache Software License
 
+
+Contents
+========
 
 .. toctree::
 
@@ -24,3 +30,4 @@ Apache Software License
    dev
    changes
    authors
+
