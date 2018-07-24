@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.9 (Unreleased)
+0.9 (2018-07-24)
 ----------------
 
 * #35: Drop support for Django 1.8, 1.9 and 1.10.
