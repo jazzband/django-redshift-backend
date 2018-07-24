@@ -4,6 +4,7 @@ CHANGES
 0.9.1 (Unreleased)
 ------------------
 
+* fix trove classifier 'License' from BSD to Apache.
 
 
 0.9 (2018-07-24)
@@ -13,6 +14,7 @@ CHANGES
 * #40: Support Django 2.0.
 * #42: Support DISTKEY. Thanks to Benjy Weinberger.
 * Documentation: http://django-redshift-backend.rtfd.io/
+* Change LICENSE from 'BSD License' to 'Apache Software License'
 
 0.8.1 (2018-06-19)
 ------------------
