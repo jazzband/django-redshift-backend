@@ -2,20 +2,35 @@
 Development
 ===========
 
+Issue Reporting
+===============
+
+**To Be Written**
+
+* https://github.com/shimizukawa/django-redshift-backend/issues
+
 Testing
 =======
 
-Testing this package requires:
+Install these packages before testing:
 
 * tox-1.8 or later
 * virtualenv-15.0.1 or later
-* pip-8.1.1 or later
+* pip-10.0.3 or later
 
+Run test
+--------
 
-CI
----
+Just run tox::
 
-**To Be Written**
+   $ tox
+
+tox have several sections for testing.
+
+CI (Continuous Integration)
+----------------------------
+
+All tests will be run on Travis CI service.
 
 * https://travis-ci.org/shimizukawa/django-redshift-backend
 
@@ -28,10 +43,21 @@ Pull Request
 * https://github.com/shimizukawa/django-redshift-backend/pulls
 
 
-Issue Reporting
-===============
+Releasing
+=========
 
-**To Be Written**
+New package version
+-------------------
 
-https://github.com/shimizukawa/django-redshift-backend/issues
+The django-redshift-backend package will be uploaded to PyPI: https://pypi.org/project/django-redshift-backend/.
+
+Here is a release procefure for releasing.
+
+.. include:: ../checklist.rst
+
+
+Updated documentation
+---------------------
+
+Sphinx documentation under ``doc/`` directory on the master branch will be automatically uploaded into ReadTheDocs: http://django-redshift-backend.rtfd.io/.
 
