@@ -7,6 +7,11 @@ This is a `Amazon Redshift`_ database backend for Django_.
 .. _Amazon Redshift: https://aws.amazon.com/jp/redshift/
 .. _Django: https://www.djangoproject.com/
 
+Documentation
+=============
+
+- http://django-redshift-backend.rtfd.io/
+
 Django settings
 ===============
 
@@ -23,7 +28,7 @@ ENGINE for DATABASES is 'django_redshift_backend'. You can set the name in your 
        }
    }
 
-For more information, please refer: http://django-redshift-backend.rtfd.io/
+For more information, please refer: Documentation_
 
 
 LICENSE

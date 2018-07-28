@@ -15,7 +15,7 @@ setup(
     name='django-redshift-backend',
     version='0.9.1',
     packages=find_packages(),
-    url='http://django-redshift-backend.rtfd.io/',
+    url='https://github.com/shimizukawa/django-redshift-backend',
     license='Apache Software License',
     author='shimizukawa',
     author_email='shimizukawa@gmail.com',
