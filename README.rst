@@ -19,7 +19,7 @@ This is a `Amazon Redshift`_ database backend for Django_.
    :alt: PyPI - Django Version
 
 .. image:: https://img.shields.io/github/license/shimizukawa/django-redshift-backend.svg
-   :alt: GitHub
+   :alt: License
    :target: https://github.com/shimizukawa/django-redshift-backend/blob/master/LICENSE
 
 .. image:: https://img.shields.io/travis/shimizukawa/django-redshift-backend/master.svg
