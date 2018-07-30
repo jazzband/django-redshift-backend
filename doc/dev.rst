@@ -2,6 +2,11 @@
 Development
 ===========
 
+Code of Conduct
+===============
+
+Please refer :doc:`code-of-conduct`.
+
 Issue Reporting
 ===============
 

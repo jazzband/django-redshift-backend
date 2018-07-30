@@ -62,4 +62,5 @@ Contents
    dev
    changes
    authors
+   code-of-conduct
 
