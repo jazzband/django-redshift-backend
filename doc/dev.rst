@@ -2,10 +2,10 @@
 Development
 ===========
 
-Code of Conduct
-===============
+Contribution Guideline
+======================
 
-Please refer :doc:`code-of-conduct`.
+.. include:: ../CONTRIBUTING.rst
 
 Issue Reporting
 ===============
