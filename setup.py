@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import os
 
 requires = [
     'django',
@@ -7,7 +8,8 @@ requires = [
 
 
 def read(filename):
-    with open(filename) as f:
+    fpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+    with open(fpath) as f:
         return f.read()
 
 
