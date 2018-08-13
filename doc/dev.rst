@@ -2,6 +2,11 @@
 Development
 ===========
 
+Contribution Guideline
+======================
+
+.. include:: ../CONTRIBUTING.rst
+
 Issue Reporting
 ===============
 
