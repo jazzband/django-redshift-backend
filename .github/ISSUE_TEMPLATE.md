@@ -21,4 +21,4 @@ Subject: <what happen when you do on which django project>
 - OS: <Unix/Linux/Mac/Win/other with version>
 - Python version:
 - Django version:
-
+- Django-Redshift-Backend version: 
