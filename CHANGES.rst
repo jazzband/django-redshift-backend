@@ -5,6 +5,7 @@ CHANGES
 ------------------
 
 * The first release from Jazzband_ organization.
+* Using `Development Status :: 5 - Production/Stable`.
 
 .. _Jazzband: https://jazzband.co/
 
