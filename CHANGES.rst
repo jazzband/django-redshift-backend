@@ -1,11 +1,13 @@
 CHANGES
 =======
 
-0.9.1 (Unreleased)
+0.9.1 (2018-09-29)
 ------------------
 
 * fix trove classifier 'License' from BSD to Apache.
+* Documentation: Add `Contribution Guideline`_
 
+.. _Contribution Guideline: https://django-redshift-backend.readthedocs.io/en/master/dev.html#contribution-guideline
 
 0.9 (2018-07-24)
 ----------------
