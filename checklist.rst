@@ -8,7 +8,7 @@ Prepare newest packages:
 
 Procedure:
 
-1. check travis-ci testing result: https://travis-ci.org/shimizukawa/django-redshift-backend
+1. check travis-ci testing result: https://travis-ci.org/jazzband/django-redshift-backend
 2. check release version in ``setup.py`` and ``CHANGES.rst``
 3. build distribtion files: ``python setup.py release sdist bdist_wheel``
 4. make a test release: ``twine upload --repository-url https://test.pypi.org/legacy dist/<new-version-files>``

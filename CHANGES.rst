@@ -5,6 +5,7 @@ CHANGES
 ------------------
 
 * The first release from Jazzband_ organization.
+* All GitHub/Travis/other URLs in this product has been migrated to `/jazzband/`.
 * Using `Development Status :: 5 - Production/Stable`.
 
 .. _Jazzband: https://jazzband.co/
@@ -44,7 +45,7 @@ Incompatible Changes:
   DateTimeField and the new DateTimeField will have different data types as a
   redshift schema column type.
   There are no migration feature by django-redshift-backend.
-  see also: https://github.com/shimizukawa/django-redshift-backend/pull/23
+  see also: https://github.com/jazzband/django-redshift-backend/pull/23
 
 New Features:
 

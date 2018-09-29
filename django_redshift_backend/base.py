@@ -88,7 +88,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
 
     def distinct_sql(self, fields):
         if fields:
-            # https://github.com/shimizukawa/django-redshift-backend/issues/14
+            # https://github.com/jazzband/django-redshift-backend/issues/14
             # Redshift doesn't support DISTINCT ON
             raise NotImplementedError('DISTINCT ON fields is not supported '
                                       'by this database backend')

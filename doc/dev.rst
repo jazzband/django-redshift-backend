@@ -12,7 +12,7 @@ Issue Reporting
 
 **To Be Written**
 
-* https://github.com/shimizukawa/django-redshift-backend/issues
+* https://github.com/jazzband/django-redshift-backend/issues
 
 Testing
 =======
@@ -37,7 +37,7 @@ CI (Continuous Integration)
 
 All tests will be run on Travis CI service.
 
-* https://travis-ci.org/shimizukawa/django-redshift-backend
+* https://travis-ci.org/jazzband/django-redshift-backend
 
 
 Pull Request
@@ -45,7 +45,7 @@ Pull Request
 
 **To Be Written**
 
-* https://github.com/shimizukawa/django-redshift-backend/pulls
+* https://github.com/jazzband/django-redshift-backend/pulls
 
 
 Releasing
