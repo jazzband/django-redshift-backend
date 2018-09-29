@@ -15,5 +15,5 @@ Procedure:
 5. make a release: ``twine upload dist/<new-version-files>``
 6. check PyPI page: https://pypi.org/p/django-redshift-backend
 7. tagging with version name. e.g.: git tag 0.4
-8. bump version in setup.py and README.rst and commit/push them onto GitHub
+8. bump version in setup.py and CHANGES.rst and commit/push them onto GitHub
 

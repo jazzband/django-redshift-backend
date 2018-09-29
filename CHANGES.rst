@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+1.0.0 (unreleased)
+------------------
+
+* The first release from Jazzband_ organization.
+
+.. _Jazzband: https://jazzband.co/
+
 0.9.1 (2018-09-29)
 ------------------
 
