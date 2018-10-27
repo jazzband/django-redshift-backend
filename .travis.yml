@@ -5,10 +5,19 @@ python:
 - '3.5'
 - '3.6'
 cache: pip
+env:
+  - DJANGO="2.0"
+  - DJANGO="1.11"
 install:
 - travis_retry pip install tox-travis
 script:
 - tox
+
+matrix:
+  fast_finish: true
+  exclude:
+    - env: DJANGO="2.0"
+      python: 2.7
 jobs:
   include:
   - stage: flake8
