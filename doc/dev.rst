@@ -26,12 +26,6 @@ Setup development environment
 Testing
 =======
 
-Install these packages before testing:
-
-* tox-1.8 or later
-* virtualenv-15.0.1 or later
-* pip-10.0.3 or later
-
 Run test
 --------
 
