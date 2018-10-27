@@ -15,7 +15,8 @@ def read(filename):
 
 setup(
     name='django-redshift-backend',
-    version='1.0.0',
+    setup_requires=['setuptools_scm'],
+    use_scm_version=True,
     packages=find_packages(),
     url='https://github.com/jazzband/django-redshift-backend',
     license='Apache Software License',

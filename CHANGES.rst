@@ -1,12 +1,26 @@
 CHANGES
 =======
 
-1.0.0 (unreleased)
-------------------
+1.0.0a1 (unreleased)
+--------------------
+
+General:
 
 * The first release from Jazzband_ organization.
-* All GitHub/Travis/other URLs in this product has been migrated to `/jazzband/`.
 * Using `Development Status :: 5 - Production/Stable`.
+* All GitHub/Travis/other URLs in this product has been migrated to `/jazzband/`.
+
+New Features:
+
+* Nothing
+
+Bug Fixes:
+
+* Nothing
+
+Development:
+
+* Adopt setuptools_scm for versioning from git tag.
 
 .. _Jazzband: https://jazzband.co/
 
