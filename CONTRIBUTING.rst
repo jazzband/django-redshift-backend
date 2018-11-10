@@ -2,7 +2,7 @@
    :target: https://jazzband.co/
    :alt: Jazzband
 
-This is (will become) a Jazzband_ project. By contributing you agree to abide by the `Contributor Code of Conduct`_ and follow the guidelines_.
+This is a Jazzband_ project. By contributing you agree to abide by the `Contributor Code of Conduct`_ and follow the guidelines_.
 
 .. _Jazzband: https://jazzband.co/
 .. _Contributor Code of Conduct: https://jazzband.co/about/conduct
