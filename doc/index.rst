@@ -4,10 +4,9 @@ Django Redshift Backend
 
 This is a `Amazon Redshift`_ database backend for Django_.
 
-.. we will comment-in after migration into jazzband repository
-   .. image:: https://jazzband.co/static/img/badge.svg
-      :target: https://jazzband.co/
-      :alt: Jazzband
+.. image:: https://jazzband.co/static/img/badge.svg
+    :target: https://jazzband.co/
+    :alt: Jazzband
 
 .. image:: https://img.shields.io/readthedocs/django-redshift-backend/master.svg
    :alt: Read the Docs (master)
