@@ -80,7 +80,7 @@ class ModelTest(unittest.TestCase):
         statements = q.get_compiler('default').as_sql()
         # uuid is the last field of TestModel
         uuid_insert_value = statements[0][1][-1]
-        # the Python value for insertion must be a string of length 32
+        # the Python value for insertion must be a string whose length is 32
         self.assertEqual(type(uuid_insert_value), str)
         self.assertEqual(len(uuid_insert_value), 32)
 
