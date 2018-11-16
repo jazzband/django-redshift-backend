@@ -84,6 +84,7 @@ class ModelTest(unittest.TestCase):
         self.assertEqual(type(uuid_insert_value), str)
         self.assertEqual(len(uuid_insert_value), 32)
 
+
 class MigrationTest(unittest.TestCase):
 
     def check_model_creation(self, model, expected_ddl):
