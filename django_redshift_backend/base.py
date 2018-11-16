@@ -36,6 +36,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     supports_column_check_constraints = False
     can_distinct_on_fields = False
     allows_group_by_selected_pks = False
+    has_native_uuid_field = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
