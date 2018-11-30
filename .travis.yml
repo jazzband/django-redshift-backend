@@ -13,19 +13,11 @@ install:
 script:
 - tox
 
-matrix:
-  fast_finish: true
+jobs:
   exclude:
     - env: DJANGO="2.0"
-      python: 2.7
-jobs:
+      python: '2.7'
   include:
-  - stage: flake8
-    python: 3.6
-    env: TOXENV=flake8
-  - stage: readme
-    python: 3.6
-    env: TOXENV=readme
   - stage: deploy
     install: skip
     script: skip
