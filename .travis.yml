@@ -1,24 +1,34 @@
 language: python
 sudo: false
+python:
+- '2.7'
+- '3.5'
+- '3.6'
 cache: pip
-matrix:
-  fast_finish: true
-  include:
-  - env: TOX_ENV=py27-dj111
-    python: 2.7
-  - env: TOX_ENV=py35-dj111
-    python: 3.5
-  - env: TOX_ENV=py36-dj111
-    python: 3.6
-  - env: TOX_ENV=py35-dj20
-    python: 3.5
-  - env: TOX_ENV=py36-dj20
-    python: 3.6
-  - env: TOX_ENV=flake8
-    python: 3.6
-  - env: TOX_ENV=readme
-    python: 3.6
 install:
-- pip install -U pip setuptools tox
+- travis_retry pip install tox-travis
 script:
-- tox -e "${TOX_ENV}"
+- tox
+jobs:
+  include:
+  - stage: flake8
+    python: 3.6
+    env: TOXENV=flake8
+  - stage: readme
+    python: 3.6
+    env: TOXENV=readme
+  - stage: deploy
+    install: skip
+    script: skip
+    python: 2.7
+    env: skip
+    deploy:
+      provider: pypi
+      user: jazzband
+      server: https://jazzband.co/projects/django-redshift-backend/upload
+      distributions: sdist bdist_wheel
+      password:
+        secure: Ce8w7iTF3Cc/Tu8PPDUYtzFiSQIzjSjeFx+lPintaSJA7V/ndARWBvVLFSKghzayB5vPihDs934O0HbTsRAKHB4ChEzOiFH6u2utLkxPgqpKbmAbTRn12Xv46mwSNWV7XBnTOs8AzfqEI7y/fHDO6DT1j4FNGgyRqclH4GgsibU=
+      on:
+        tags: true
+        repo: jazzband/django-redshift-backend
