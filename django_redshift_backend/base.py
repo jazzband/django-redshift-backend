@@ -94,8 +94,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
             # Redshift doesn't support DISTINCT ON
             raise NotSupportedError('DISTINCT ON fields is not supported '
                                       'by this database backend')
-        else:
-            return 'DISTINCT'
+        return super(self, DatabaseOperations).distinct_sql(*args)
 
 
 def _related_non_m2m_objects(old_field, new_field):
