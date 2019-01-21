@@ -70,6 +70,20 @@ class ModelTest(unittest.TestCase):
         sql = norm_sql(compiler.as_sql()[0])
         self.assertEqual(sql, expected_dml_annotate)
 
+    def test_insert_uuid_field(self):
+        import uuid
+        from django.db.models import sql
+        from testapp.models import TestModel
+        obj = TestModel(uuid=uuid.uuid4())
+        q = sql.InsertQuery(obj)
+        q.insert_values(obj._meta.local_fields, [obj])
+        statements = q.get_compiler('default').as_sql()
+        # uuid is the last field of TestModel
+        uuid_insert_value = statements[0][1][-1]
+        # the Python value for insertion must be a string whose length is 32
+        self.assertEqual(type(uuid_insert_value), str)
+        self.assertEqual(len(uuid_insert_value), 32)
+
 
 class MigrationTest(unittest.TestCase):
 
