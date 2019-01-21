@@ -16,7 +16,7 @@ New Features:
 
 Bug Fixes:
 
-* Nothing
+* #53,#54: UUIDField django model field will cause clash. Thanks to Corentin Dupret.
 
 Development:
 
