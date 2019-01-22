@@ -3,6 +3,7 @@
 import unittest
 
 from django.db import connections
+from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
 
 
@@ -54,6 +55,16 @@ expected_dml_annotate = norm_sql(
 ''')
 
 
+expected_dml_distinct = norm_sql(
+    u'''SELECT DISTINCT
+    "testapp_testmodel"."id",
+    "testapp_testmodel"."ctime",
+    "testapp_testmodel"."text",
+    "testapp_testmodel"."uuid"
+    FROM "testapp_testmodel"
+''')
+
+
 class ModelTest(unittest.TestCase):
 
     def check_model_creation(self, model, expected_ddl):
@@ -83,6 +94,20 @@ class ModelTest(unittest.TestCase):
         # the Python value for insertion must be a string whose length is 32
         self.assertEqual(type(uuid_insert_value), str)
         self.assertEqual(len(uuid_insert_value), 32)
+
+    def test_distinct(self):
+        from testapp.models import TestModel
+        query = TestModel.objects.distinct().query
+        compiler = query.get_compiler(using='default')
+        sql = norm_sql(compiler.as_sql()[0])
+        self.assertEqual(sql, expected_dml_distinct)
+
+    def test_distinct_with_fields(self):
+        from testapp.models import TestModel
+        query = TestModel.objects.distinct('text').query
+        compiler = query.get_compiler(using='default')
+        with self.assertRaises(NotSupportedError):
+            compiler.as_sql()
 
 
 class MigrationTest(unittest.TestCase):

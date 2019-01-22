@@ -88,13 +88,13 @@ class DatabaseOperations(BasePGDatabaseOperations):
             value = uuid.UUID(value)
         return value
 
-    def distinct_sql(self, *args):
-        if args:
+    def distinct_sql(self, fields, *args):
+        if fields:
             # https://github.com/jazzband/django-redshift-backend/issues/14
             # Redshift doesn't support DISTINCT ON
             raise NotSupportedError('DISTINCT ON fields is not supported '
                                       'by this database backend')
-        return super(self, DatabaseOperations).distinct_sql(*args)
+        return super(DatabaseOperations, self).distinct_sql(fields, *args)
 
 
 def _related_non_m2m_objects(old_field, new_field):
