@@ -12,7 +12,7 @@ General:
 
 New Features:
 
-* Nothing
+* #56 Support Django 2.1.
 
 Bug Fixes:
 

@@ -22,6 +22,7 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
 )
+from django.db.utils import NotSupportedError
 
 from django_redshift_backend.distkey import DistKey
 
@@ -64,7 +65,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
         return cursor.fetchone()[0]
 
     def for_update_sql(self, nowait=False):
-        raise NotImplementedError(
+        raise NotSupportedError(
             'SELECT FOR UPDATE is not implemented for this database backend')
 
     def deferrable_sql(self):
@@ -87,14 +88,13 @@ class DatabaseOperations(BasePGDatabaseOperations):
             value = uuid.UUID(value)
         return value
 
-    def distinct_sql(self, fields):
+    def distinct_sql(self, fields, *args):
         if fields:
             # https://github.com/jazzband/django-redshift-backend/issues/14
             # Redshift doesn't support DISTINCT ON
-            raise NotImplementedError('DISTINCT ON fields is not supported '
+            raise NotSupportedError('DISTINCT ON fields is not supported '
                                       'by this database backend')
-        else:
-            return 'DISTINCT'
+        return super(DatabaseOperations, self).distinct_sql(fields, *args)
 
 
 def _related_non_m2m_objects(old_field, new_field):
@@ -131,7 +131,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         return
 
     def _create_index_sql(self, model, fields, suffix="", sql=None):
-        raise NotImplementedError("Redshift doesn't support INDEX")
+        raise NotSupportedError("Redshift doesn't support INDEX")
 
     def create_model(self, model):
         """
