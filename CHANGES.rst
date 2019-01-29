@@ -13,6 +13,7 @@ General:
 New Features:
 
 * #56 Support Django 2.1.
+* #57 Support Python 3.7
 
 Bug Fixes:
 
