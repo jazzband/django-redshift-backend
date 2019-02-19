@@ -9,6 +9,9 @@ DATABASES = {
         'PASSWORD': 'password',
         'HOST': 'localhost',
         'PORT': '5439',
+        'OPTIONS': {
+            'query_group': 'webapp',
+        },
     }
 }
 

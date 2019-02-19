@@ -567,6 +567,22 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
         self.introspection = DatabaseIntrospection(self)
         self.validation = BaseDatabaseValidation(self)
 
+    def get_connection_params(self):
+        conn_params = super(DatabaseWrapper, self).get_connection_params()
+        self.query_group = conn_params.pop('query_group', None)
+        return conn_params
+
+    def init_connection_state(self):
+        super(DatabaseWrapper, self).init_connection_state()
+        assignments = []
+        if self.query_group:
+            assignments.append('SET query_group TO \'{query_group}\''.format(
+                query_group=self.query_group))
+
+        if assignments:
+            with self.cursor() as cursor:
+                cursor.execute('; '.join(assignments))
+
     def check_constraints(self, table_names=None):
         """
         No constraints to check in Redshift.

@@ -25,8 +25,20 @@ ENGINE for DATABASES is 'django_redshift_backend'. You can set the name in your 
            'PASSWORD': '<your database password>',
            'HOST': '<your database hostname>',
            'PORT': '5439',
+           'OPTIONS': {
+               'query_group': 'webapp',
+           },
        }
    }
+
+
+OPTIONS
+-------
+
+- ``query_group``: Set query_group_ to use `Work Load Management`_
+
+.. _query_group: https://docs.aws.amazon.com/redshift/latest/dg/r_query_group.html
+.. _Work Load Management: https://docs.aws.amazon.com/redshift/latest/dg/cm-c-implementing-workload-management.html
 
 For more information, please refer :doc:`refs`.
 
