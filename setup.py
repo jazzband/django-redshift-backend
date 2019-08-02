@@ -3,7 +3,7 @@ import os
 
 requires = [
     'django',
-    'psycopg2',
+    'psycopg2-binary',
 ]
 
 
