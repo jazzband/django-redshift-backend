@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+1.1.0 (2019/08/02)
+------------------
+
+Bug Fixes:
+
+* #60 Change dependencies to support Python 3.7
+
 1.0.0 (2019/01/29)
 ------------------
 
