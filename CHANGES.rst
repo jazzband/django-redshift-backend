@@ -1,6 +1,15 @@
 CHANGES
 =======
 
+1.0.1
+-----
+
+New Features:
+
+* Support `query_group` options for `Work Load Management`_
+
+.. _Work Load Management: https://docs.aws.amazon.com/redshift/latest/dg/cm-c-implementing-workload-management.html
+
 1.0.0 (2019/01/29)
 ------------------
 

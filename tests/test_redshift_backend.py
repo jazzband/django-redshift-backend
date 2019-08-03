@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import unittest
 
 from django.db import connections
@@ -19,6 +20,20 @@ class DatabaseWrapperTest(unittest.TestCase):
     def test_load_redshift_backend(self):
         db = connections['default']
         self.assertIsNotNone(db)
+
+    def test_query_group(self):
+        db = connections['default']
+        self.assertIsNotNone(db)
+
+        db.get_connection_params()
+        self.assertEqual('webapp', db.query_group)
+
+        db.connection = mock.Mock()
+        db.ensure_timezone = mock.Mock()
+        db.force_debug_cursor = True
+
+        db.init_connection_state()
+        self.assertEqual(1, len(db.queries_log))
 
 
 expected_ddl_normal = norm_sql(
