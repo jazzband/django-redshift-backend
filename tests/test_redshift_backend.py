@@ -64,6 +64,19 @@ expected_dml_distinct = norm_sql(
     FROM "testapp_testmodel"
 ''')
 
+expected_aggregate_filter_emulated = norm_sql(
+    u'''SELECT
+    "testapp_testparentmodel"."id",
+    "testapp_testparentmodel"."age",
+    COUNT(CASE WHEN "testapp_testparentmodel"."age" < %s THEN "testapp_testchildmodel"."id" ELSE NULL END) AS "cnt"
+    FROM "testapp_testparentmodel"
+    LEFT OUTER JOIN "testapp_testchildmodel"
+    ON ("testapp_testparentmodel"."id" = "testapp_testchildmodel"."parent_id")
+    GROUP BY
+    "testapp_testparentmodel"."id",
+    "testapp_testparentmodel"."age"
+''')
+
 
 class ModelTest(unittest.TestCase):
 
@@ -80,6 +93,17 @@ class ModelTest(unittest.TestCase):
         compiler = query.get_compiler(using='default')
         sql = norm_sql(compiler.as_sql()[0])
         self.assertEqual(sql, expected_dml_annotate)
+
+    def test_emulate_aggregate_filter(self):
+        self.maxDiff = None
+        from django.db.models import Count, Q
+        from testapp.models import TestParentModel
+        query = TestParentModel.objects.annotate(
+            cnt=Count('testchildmodel', filter=Q(age__lt=10))
+        ).query
+        compiler = query.get_compiler(using='default')
+        sql = norm_sql(compiler.as_sql()[0])
+        self.assertEqual(sql, expected_aggregate_filter_emulated)
 
     def test_insert_uuid_field(self):
         import uuid
