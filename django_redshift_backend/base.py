@@ -149,11 +149,11 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
             # ## if 'definition' contains 'varchar', length must be 3 times
             # ## because Redshift requires bytes length for utf-8 chars.
-            m = re.match('varchar\((\d+?)\)', definition)
+            m = re.match(r'varchar\((\d+?)\)', definition)
             if m:
                 definition = re.sub(
-                    'varchar\((\d+?)\)',
-                    "varchar({0})".format(
+                    r'varchar\((\d+?)\)',
+                    "varchar({})".format(
                         str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
 
