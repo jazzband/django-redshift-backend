@@ -13,15 +13,26 @@ import logging
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.validation import BaseDatabaseValidation
-from django.db.backends.postgresql_psycopg2.base import (
-    DatabaseFeatures as BasePGDatabaseFeatures,
-    DatabaseWrapper as BasePGDatabaseWrapper,
-    DatabaseOperations as BasePGDatabaseOperations,
-    DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
-    DatabaseClient,
-    DatabaseCreation as BasePGDatabaseCreation,
-    DatabaseIntrospection,
-)
+try:
+    from django.db.backends.postgresql.base import (
+        DatabaseFeatures as BasePGDatabaseFeatures,
+        DatabaseWrapper as BasePGDatabaseWrapper,
+        DatabaseOperations as BasePGDatabaseOperations,
+        DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
+        DatabaseClient,
+        DatabaseCreation as BasePGDatabaseCreation,
+        DatabaseIntrospection,
+    )
+except ImportError:
+    from django.db.backends.postgresql_psycopg2.base import (
+        DatabaseFeatures as BasePGDatabaseFeatures,
+        DatabaseWrapper as BasePGDatabaseWrapper,
+        DatabaseOperations as BasePGDatabaseOperations,
+        DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
+        DatabaseClient,
+        DatabaseCreation as BasePGDatabaseCreation,
+        DatabaseIntrospection,
+    )
 from django.db.utils import NotSupportedError
 
 from django_redshift_backend.distkey import DistKey

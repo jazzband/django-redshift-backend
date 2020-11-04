@@ -6,11 +6,16 @@ python:
 - '3.5'
 - '3.6'
 - '3.7'
+- '3.8'
+- '3.9'
 cache: pip
 env:
+  - DJANGO="1.11"
   - DJANGO="2.0"
   - DJANGO="2.1"
-  - DJANGO="1.11"
+  - DJANGO="2.2"
+  - DJANGO="3.0"
+  - DJANGO="3.1"
 install:
 - travis_retry pip install tox-travis
 script:
@@ -22,6 +27,32 @@ jobs:
       python: '2.7'
     - env: DJANGO="2.1"
       python: '2.7'
+    - env: DJANGO="2.2"
+      python: '2.7'
+    - env: DJANGO="3.0"
+      python: '2.7'
+    - env: DJANGO="3.1"
+      python: '2.7'
+
+    - env: DJANGO="3.0"
+      python: '3.5'
+    - env: DJANGO="3.1"
+      python: '3.5'
+
+    - env: DJANGO="1.11"
+      python: '3.8'
+    - env: DJANGO="2.0"
+      python: '3.8'
+    - env: DJANGO="2.1"
+      python: '3.8'
+
+    - env: DJANGO="1.11"
+      python: '3.9'
+    - env: DJANGO="2.0"
+      python: '3.9'
+    - env: DJANGO="2.1"
+      python: '3.9'
+
   include:
   - stage: deploy
     install: skip
