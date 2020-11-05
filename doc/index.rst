@@ -43,8 +43,8 @@ Support versions
 
 This product is tested with:
 
-* Python-2.7, 3.5, 3.6
-* Django-1.11, 2.0
+* Python-2.7, 3.5, 3.6, 37, 38 and 3.9
+* Django-1.11, 2.0, 2.1, 2.2, 3.0, 3.1
 
 License
 =======
