@@ -1,11 +1,9 @@
 name: CI
 
-on:
-  push:
-    branches:
-      # Avoid double building for pull requests
-      - master
-  pull_request:
+on: [push, pull_request]
+
+env:
+  FORCE_COLOR: 1
 
 jobs:
   tests:
