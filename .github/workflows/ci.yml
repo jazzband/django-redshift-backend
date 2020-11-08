@@ -12,19 +12,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["2.7", "3.6", "3.7"]
+        python: ["2.7", "3.6", "3.7"]
         django: ["1.11", "2.0", "2.1"]
-
         # TODO: test on mac OS & windows?
-        os:
-          - ubuntu-latest
+        os: [ubuntu-latest]
+        exclude:
+          - django: "2.0"
+            python: "2.7"
+          - django: "2.1"
+            python: "2.7"
 
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
       - name: Get pip cache dir
         id: pip-cache
@@ -35,9 +38,9 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key:
-            ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.django }}-v1-${{ hashFiles('**/setup.py') }}
+            ${{ matrix.os }}-${{ matrix.python }}-${{ matrix.django }}-v1-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.django }}-v1-
+            ${{ matrix.os }}-${{ matrix.python }}-${{ matrix.django }}-v1-
 
       - name: Install dependencies
         run: |
