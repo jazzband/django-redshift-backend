@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["2.7", "3.5", "3.6", "3.7"]
-        django: ["1.11", "2.0", "2.1"]
+        python: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
+        django: ["1.11", "2.0", "2.1", "2.2", "3.0", "3.1"]
         # TODO: test on mac OS & windows?
         os: [ubuntu-latest]
         exclude:
@@ -21,6 +21,31 @@ jobs:
             python: "2.7"
           - django: "2.1"
             python: "2.7"
+          - django: "2.2"
+            python: "2.7"
+          - django: "3.0"
+            python: "2.7"
+          - django: "3.1"
+            python: "2.7"
+
+          - django: "3.0"
+            python: "3.5"
+          - django: "3.1"
+            python: "3.5"
+
+          - django: "1.11"
+            python: "3.8"
+          - django: "2.0"
+            python: "3.8"
+          - django: "2.1"
+            python: "3.8"
+
+          - django: "1.11"
+            python: "3.9"
+          - django: "2.0"
+            python: "3.9"
+          - django: "2.1"
+            python: "3.9"
 
     steps:
       - uses: actions/checkout@v2
