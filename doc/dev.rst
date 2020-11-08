@@ -40,7 +40,7 @@ CI (Continuous Integration)
 
 All tests will be run on Github Actions:
 
-* https://github.com/jazzband/django-redshift-backend/actions?query=workflow%3ACI
+* https://github.com/jazzband/django-redshift-backend/actions?query=workflow%3ATest
 
 
 Pull Request
