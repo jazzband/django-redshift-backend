@@ -12,37 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
-        versions:
-          # Linting
-          - tox: flake8
-            python: 3.6
-          - tox: readme
-            python: 3.6
-
-          # Django 1.11
-          - tox: py27-dj111
-            python: 2.7
-          - tox: py35-dj111
-            python: 3.5
-          - tox: py36-dj111
-            python: 3.6
-
-          # Django 2.0
-          - tox: py35-dj20
-            python: 3.5
-          - tox: py36-dj20
-            python: 3.6
-          - tox: py37-dj20
-            python: 3.7
-
-          # Django 2.1
-          - tox: py35-dj21
-            python: 3.5
-          - tox: py36-dj21
-            python: 3.6
-          - tox: py37-dj21
-            python: 3.7
+        python-version: ["2.7", "3.6", "3.7"]
+        django: ["1.11", "2.0", "2.1"]
 
         # TODO: test on mac OS & windows?
         os:
@@ -53,7 +24,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.versions.python }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Get pip cache dir
         id: pip-cache
@@ -64,18 +35,20 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key:
-            ${{ matrix.os }}-${{ matrix.versions.python }}-v1-${{ hashFiles('**/setup.py') }}
+            ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.django }}-v1-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ matrix.os }}-${{ matrix.versions.python }}-v1-
+            ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.django }}-v1-
 
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install -U tox
+          python -m pip install -U tox tox-gh-actions
 
       - name: Tox tests
         shell: bash
-        run: tox -e ${{ matrix.versions.tox }}
+        run: tox
+        env:
+          DJANGO: ${{ matrix.django }}
 
   deploy:
     runs-on: ubuntu-latest
