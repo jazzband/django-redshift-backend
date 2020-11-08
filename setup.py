@@ -3,7 +3,6 @@ import os
 
 requires = [
     'django',
-    'psycopg2-binary',
 ]
 
 
@@ -25,6 +24,10 @@ setup(
     description='Redshift database backend for Django',
     long_description=read('README.rst') + read('CHANGES.rst'),
     install_requires=requires,
+    extra_requires={
+        'psycopg2-binary': ['psycopg2-binary'],
+        'psycopg2': ['psycopg2'],
+    },
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
