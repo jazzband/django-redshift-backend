@@ -76,8 +76,7 @@ settings.DATABASES
 
 :PORT:
    Set your Redshift server port number. Maybe '5439'.
-       }
-   }
+
 
 settings.REDSHIFT_VARCHAR_LENGTH_MULTIPLIER
 -------------------------------------------
