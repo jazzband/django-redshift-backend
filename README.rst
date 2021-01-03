@@ -26,9 +26,13 @@ This is a `Amazon Redshift`_ database backend for Django_.
    :alt: License
    :target: https://github.com/jazzband/django-redshift-backend/blob/master/LICENSE
 
-.. image:: https://img.shields.io/github/workflow/status/jazzband/django-redshift-backend/Test/master
-   :alt: Tests
-   :target: https://github.com/jazzband/django-redshift-backend/actions?query=workflow%3ATest
+.. image:: https://github.com/jazzband/django-redshift-backend/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/django-redshift-backend/actions
+   :alt: GitHub Actions
+
+.. image:: https://codecov.io/gh/jazzband/django-redshift-backend/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/jazzband/django-redshift-backend
+   :alt: Coverage
 
 .. image:: https://img.shields.io/github/stars/jazzband/django-redshift-backend.svg?style=social&label=Stars
    :alt: GitHub stars
