@@ -14,13 +14,15 @@ This is a `Amazon Redshift`_ database backend for Django_.
 
 .. image:: https://img.shields.io/pypi/v/django-redshift-backend.svg
    :alt: PyPI
-   :target: http://pypi.org/p/django-redshift-backend
+   :target: https://pypi.org/project/django-redshift-backend/
 
 .. image:: https://img.shields.io/pypi/pyversions/django-redshift-backend.svg
    :alt: PyPI - Python Version
+   :target: https://pypi.org/project/django-redshift-backend/
 
 .. image:: https://img.shields.io/pypi/djversions/django-redshift-backend.svg
    :alt: PyPI - Django Version
+   :target: https://pypi.org/project/django-redshift-backend/
 
 .. image:: https://img.shields.io/github/license/jazzband/django-redshift-backend.svg
    :alt: License
