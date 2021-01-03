@@ -13,7 +13,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.validation import BaseDatabaseValidation
-from django.db.backends.postgresql_psycopg2.base import (
+from django.db.backends.postgresql.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
     DatabaseOperations as BasePGDatabaseOperations,
@@ -22,6 +22,7 @@ from django.db.backends.postgresql_psycopg2.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection,
 )
+
 from django.db.utils import NotSupportedError
 
 from django_redshift_backend.distkey import DistKey
@@ -150,10 +151,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
             # ## if 'definition' contains 'varchar', length must be 3 times
             # ## because Redshift requires bytes length for utf-8 chars.
-            m = re.match('varchar\((\d+?)\)', definition)
+            m = re.match(r'varchar\((\d+?)\)', definition)
             if m:
                 definition = re.sub(
-                    'varchar\((\d+?)\)',
+                    r"varchar\((\d+?)\)",
                     "varchar({0})".format(
                         str(int(m.group(1)) * self.multiply_varchar_length)),
                     definition)
@@ -449,8 +450,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                     "table": self.quote_name(new_rel.related_model._meta.db_table),
                     "changes": fragment[0],
                 },
-                fragment[1],
-                )
+                fragment[1])
             for sql, params in other_actions:
                 self.execute(sql, params)
         # Does it have a foreign key?
