@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+Unreleased
+----------
+
+* Drop Python 2.7 and 3.5 support.
+
+* Drop Django 1.11, 2.0 and 2.1 support.
+
+* Add Python 3.8 and 3.9 support.
+
+* Add Django 3.0 and 3.1 support.
+
+* Moved CI to GitHub Actions: https://github.com/jazzband/django-redshift-backend/actions
+
 1.1.0 (2019/08/02)
 ------------------
 

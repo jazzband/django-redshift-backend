@@ -38,9 +38,9 @@ tox have several sections for testing.
 CI (Continuous Integration)
 ----------------------------
 
-All tests will be run on Travis CI service.
+All tests will be run on Github Actions:
 
-* https://travis-ci.org/jazzband/django-redshift-backend
+* https://github.com/jazzband/django-redshift-backend/actions?query=workflow%3ATest
 
 
 Pull Request

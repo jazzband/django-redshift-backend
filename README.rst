@@ -26,9 +26,13 @@ This is a `Amazon Redshift`_ database backend for Django_.
    :alt: License
    :target: https://github.com/jazzband/django-redshift-backend/blob/master/LICENSE
 
-.. image:: https://img.shields.io/travis/jazzband/django-redshift-backend/master.svg
-   :alt: Travis (.org) branch
-   :target: https://travis-ci.org/jazzband/django-redshift-backend
+.. image:: https://github.com/jazzband/django-redshift-backend/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/django-redshift-backend/actions
+   :alt: GitHub Actions
+
+.. image:: https://codecov.io/gh/jazzband/django-redshift-backend/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/jazzband/django-redshift-backend
+   :alt: Coverage
 
 .. image:: https://img.shields.io/github/stars/jazzband/django-redshift-backend.svg?style=social&label=Stars
    :alt: GitHub stars
@@ -40,7 +44,7 @@ This is a `Amazon Redshift`_ database backend for Django_.
 Documentation
 =============
 
-- http://django-redshift-backend.rtfd.io/
+- https://django-redshift-backend.rtfd.io/
 
 Django settings
 ===============
