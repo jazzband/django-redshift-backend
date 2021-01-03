@@ -40,7 +40,7 @@ This is a `Amazon Redshift`_ database backend for Django_.
 Documentation
 =============
 
-- http://django-redshift-backend.rtfd.io/
+- https://django-redshift-backend.rtfd.io/
 
 Django settings
 ===============
