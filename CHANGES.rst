@@ -1,18 +1,29 @@
 CHANGES
 =======
 
-Unreleased
-----------
+2.0.0a1 (2020/01/04)
+---------------------
+
+General:
+
+* #70,#71,#72 Moved CI to GitHub Actions: https://github.com/jazzband/django-redshift-backend/actions
+  Thkanks to Bruno Alla.
+
+Features:
 
 * Drop Python 2.7 and 3.5 support.
-
 * Drop Django 1.11, 2.0 and 2.1 support.
+* #68 Add Python 3.8 and 3.9 support.
+* #68 Add Django 3.0 and 3.1 support.
 
-* Add Python 3.8 and 3.9 support.
+Bug Fixes:
 
-* Add Django 3.0 and 3.1 support.
+* #69 Let users choose between psycopg2 binary or source. Thkanks to Bruno Alla.
+* #65,#66 Deprecation warning due to invalid escape sequences. Thanks to Karthikeyan Singaravelan.
 
-* Moved CI to GitHub Actions: https://github.com/jazzband/django-redshift-backend/actions
+Documentation:
+
+* #67 Just a typo cleanup from refs.rst. Thanks to Kostja P.
 
 1.1.0 (2019/08/02)
 ------------------
