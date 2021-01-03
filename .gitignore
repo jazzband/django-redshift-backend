@@ -8,3 +8,5 @@ dist/
 .tox
 .pytest_cache/
 doc/_build/
+.coverage
+coverage.xml
