@@ -39,6 +39,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     can_distinct_on_fields = False
     allows_group_by_selected_pks = False
     has_native_uuid_field = False
+    supports_aggregate_filter_clause = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
