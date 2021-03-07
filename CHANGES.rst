@@ -1,9 +1,20 @@
 CHANGES
 =======
 
-x.x.x (unreleased)
+2.1.0 (unreleased)
 ------------------
 
+General:
+
+* #76 fix test failing on django-dev with py36,py37
+
+Bug Fixes:
+
+* TBD
+
+Features:
+
+* TBD
 
 2.0.1 (2021/03/07)
 ------------------
