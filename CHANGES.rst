@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+3.0.0 (unreleased)
+------------------
+
+Features:
+
+* Drop Python 3.6 and 3.7 support; Django 4.0 drop these support and django-redshift-backend only supports latest two python versions.
+
 2.0.1 (2021/03/07)
 ------------------
 
