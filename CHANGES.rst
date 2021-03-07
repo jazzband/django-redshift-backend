@@ -7,6 +7,7 @@ CHANGES
 General:
 
 * #76 fix test failing on django-dev with py36,py37
+* #77 Mondernize setup.cfg
 
 Bug Fixes:
 
