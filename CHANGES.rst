@@ -1,10 +1,12 @@
 CHANGES
 =======
 
-Unreleased
-----------------
+2.1.0 (Unreleased)
+------------------
 
+Bug Fixes:
 
+* #74: set supports_aggregate_filter_clause=False (since Django-2.0) to disable FILTER WHERE syntax. Thanks to Michael Wheeler.
 
 2.0.0 (2021/01/04)
 -------------------
