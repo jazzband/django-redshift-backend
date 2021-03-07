@@ -7,6 +7,7 @@ CHANGES
 Bug Fixes:
 
 * #74: set supports_aggregate_filter_clause=False (since Django-2.0) to disable FILTER WHERE syntax. Thanks to Michael Wheeler.
+* #73: fix broken feature flags since Django-3.0: can_return_columns_from_insert and can_return_rows_from_bulk_insert. Thanks to Agustín Magaña.
 
 2.0.0 (2021/01/04)
 -------------------

@@ -32,8 +32,10 @@ logger = logging.getLogger('django.db.backends')
 
 
 class DatabaseFeatures(BasePGDatabaseFeatures):
-    can_return_id_from_insert = False
-    can_return_ids_from_bulk_insert = False
+    can_return_id_from_insert = False         # old name until django-2.x
+    can_return_ids_from_bulk_insert = False   # old name until django-2.x
+    can_return_columns_from_insert = False    # new name since django-3.0
+    can_return_rows_from_bulk_insert = False  # new name since django-3.0
     has_select_for_update = False
     supports_column_check_constraints = False
     can_distinct_on_fields = False
