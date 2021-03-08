@@ -56,7 +56,7 @@ Build package
 
 Use build::
 
-   $ build
+   $ python -m build
 
 
 Releasing
