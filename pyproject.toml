@@ -3,4 +3,6 @@ requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 
 [tool.setuptools_scm]
 # this empty section means: use_scm_version=True
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
 
