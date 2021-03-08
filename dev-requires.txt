@@ -2,4 +2,5 @@ setuptools
 wheel
 setuptools_scm
 tox>=3.5
+build
 -e ./

@@ -20,7 +20,7 @@ Setup development environment
 * Requires supported Python version
 * do setup under django-redshift-backend.git repository root as::
 
-    $ pip install -U pip setuptools wheel setuptools_scm
+    $ pip install -U pip setuptools
     $ pip install -r dev-requires.txt
 
 Testing
@@ -49,6 +49,14 @@ Pull Request
 **To Be Written**
 
 * https://github.com/jazzband/django-redshift-backend/pulls
+
+
+Build package
+=============
+
+Use build::
+
+   $ build
 
 
 Releasing
