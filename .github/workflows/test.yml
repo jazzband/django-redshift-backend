@@ -13,9 +13,9 @@ jobs:
         python-version: ['3.6', '3.7', '3.8', '3.9']
         django-version: ['2.2', '3.0', '3.1']
         include:
-          - django-version: 'dev'
+          - django-version: 'main'
             python-version: '3.8'
-          - django-version: 'dev'
+          - django-version: 'main'
             python-version: '3.9'
 
     steps:
