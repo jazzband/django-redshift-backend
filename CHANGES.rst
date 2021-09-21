@@ -15,7 +15,7 @@ Bug Fixes:
 
 Features:
 
-* TBD
+* #?? Add Django 3.2 support.
 
 2.0.1 (2021/03/07)
 ------------------
