@@ -11,11 +11,11 @@ General:
 
 Bug Fixes:
 
-* TBD
+* #80 uuid field doesn't work correctly with django 2.x and 3.x. Thanks to xavier-lr.
 
 Features:
 
-* #?? Add Django 3.2 support.
+* #81 Add Django 3.2 support.
 
 2.0.1 (2021/03/07)
 ------------------
