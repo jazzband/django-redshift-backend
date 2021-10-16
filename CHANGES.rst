@@ -1,20 +1,13 @@
 CHANGES
 =======
 
-x.x.x (Unreleased)
+3.0.0 (Unreleased)
 ------------------
-
-General:
-
-* TBD
-
-Bug Fixes:
-
-* TBD
 
 Features:
 
-* TBD
+* #82 Add Python-3.10 support.
+* #82 Drop Django-3.0 support.
 
 2.1.0 (2021/09/23)
 ------------------
