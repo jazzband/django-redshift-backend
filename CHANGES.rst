@@ -4,6 +4,10 @@ CHANGES
 3.0.0 (Unreleased)
 ------------------
 
+General:
+
+* #87 Drop py2 wheel tag from release package file.
+
 Features:
 
 * #82 Add Python-3.10 support.
