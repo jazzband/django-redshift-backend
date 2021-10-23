@@ -7,6 +7,7 @@ CHANGES
 General:
 
 * #87 Drop py2 wheel tag from release package file.
+* Add `CODE_OF_CONDUCT.rst` The linked text which has been referred to from CONTRIBUTING.rst is now included.
 
 Features:
 

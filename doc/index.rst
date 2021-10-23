@@ -61,4 +61,5 @@ Contents
    dev
    changes
    authors
+   coc
 

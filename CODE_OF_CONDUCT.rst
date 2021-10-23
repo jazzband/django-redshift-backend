@@ -1,4 +1,5 @@
-# Code of Conduct
+Code of Conduct
+===============
 
 As contributors and maintainers of the Jazzband projects, and in the interest of
 fostering an open and welcoming community, we pledge to respect all people who
@@ -39,8 +40,7 @@ investigated and will result in a response that is deemed necessary and appropri
 the circumstances. Roadies are obligated to maintain confidentiality with regard to the
 reporter of an incident.
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version
-1.3.0, available at [https://contributor-covenant.org/version/1/3/0/][version]
+This Code of Conduct is adapted from the `Contributor Covenant`_, version
+1.3.0, available at https://contributor-covenant.org/version/1/3/0/
 
-[homepage]: https://contributor-covenant.org
-[version]: https://contributor-covenant.org/version/1/3/0/
+.. _Contributor Covenant: https://contributor-covenant.org
