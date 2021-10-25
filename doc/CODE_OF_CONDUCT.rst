@@ -1,3 +1,5 @@
+.. THIS IS A reStructuredText versoin of ../CODE_OF_CONDUCT.md
+
 Code of Conduct
 ===============
 

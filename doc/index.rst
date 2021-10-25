@@ -61,5 +61,5 @@ Contents
    dev
    changes
    authors
-   coc
+   CODE_OF_CONDUCT
 
