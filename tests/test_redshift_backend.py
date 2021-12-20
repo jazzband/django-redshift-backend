@@ -199,7 +199,8 @@ class IntrospectionTest(unittest.TestCase):
         u'''SELECT
             c2.relname,
             idx.indrelid,
-            idx.indkey, -- indkey is of type "int2vector" and returns a space-separated string
+            idx.indkey,
+            -- indkey is of type "int2vector" and returns a space-separated string
             idx.indisunique,
             idx.indisprimary
         FROM
@@ -219,9 +220,13 @@ class IntrospectionTest(unittest.TestCase):
             from testapp.models import TestModel
             table_name = TestModel._meta.db_table
 
-            _table_description = conn.introspection.get_table_description(mock_cursor, table_name)
+            _ = conn.introspection.get_table_description(mock_cursor, table_name)
 
-            (select_metadata_call, fetchall_call, select_row_call) = mock_cursor.method_calls
+            (
+                select_metadata_call,
+                fetchall_call,
+                select_row_call
+            ) = mock_cursor.method_calls
 
             call_method, call_args, call_kwargs = select_metadata_call
             self.assertEqual('execute', call_method)
@@ -247,7 +252,15 @@ class IntrospectionTest(unittest.TestCase):
 
             mock_cursor.fetchall.side_effect = [
                 # conname, conkey, conrelid, contype, used_cols)
-                [('testapp_testmodel_testapp_testmodel_id_pkey', [1], 12345678, 'p', None)],
+                [
+                    (
+                        'testapp_testmodel_testapp_testmodel_id_pkey',
+                        [1],
+                        12345678,
+                        'p',
+                        None,
+                    ),
+                ],
                 [
                     # attrelid, attnum, attname
                     (12345678, 1, 'id'),
@@ -256,10 +269,19 @@ class IntrospectionTest(unittest.TestCase):
                     (12345678, 4, 'uuid'),
                 ],
                 # index_name, indrelid, indkey, unique, primary
-                [('testapp_testmodel_testapp_testmodel_id_pkey', 12345678, '1', True, True)],
+                [
+                    (
+                        'testapp_testmodel_testapp_testmodel_id_pkey',
+                        12345678,
+                        '1',
+                        True,
+                        True,
+                    ),
+                ],
             ]
 
-            table_constraints = conn.introspection.get_constraints(mock_cursor, table_name)
+            table_constraints = conn.introspection.get_constraints(
+                mock_cursor, table_name)
 
             expected_table_constraints = {
                 'testapp_testmodel_testapp_testmodel_id_pkey': {
