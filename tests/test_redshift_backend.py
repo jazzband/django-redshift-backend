@@ -187,9 +187,9 @@ class IntrospectionTest(unittest.TestCase):
 
     expected_attributes_query = norm_sql(
         u'''SELECT
-            attrelid, -- table oid 
-            attnum, 
-            attname 
+            attrelid, -- table oid
+            attnum,
+            attname
         FROM pg_attribute
         WHERE pg_attribute.attrelid = %s
         ORDER BY attrelid, attnum;
@@ -197,18 +197,18 @@ class IntrospectionTest(unittest.TestCase):
 
     expected_indexes_query = norm_sql(
         u'''SELECT
-            c2.relname, 
-            idx.indrelid, 
+            c2.relname,
+            idx.indrelid,
             idx.indkey, -- indkey is of type "int2vector" and returns a space-separated string
-            idx.indisunique, 
-            idx.indisprimary 
-        FROM 
-            pg_catalog.pg_class c, 
-            pg_catalog.pg_class c2, 
-            pg_catalog.pg_index idx 
-        WHERE 
-            c.oid = idx.indrelid 
-            AND idx.indexrelid = c2.oid 
+            idx.indisunique,
+            idx.indisprimary
+        FROM
+            pg_catalog.pg_class c,
+            pg_catalog.pg_class c2,
+            pg_catalog.pg_index idx
+        WHERE
+            c.oid = idx.indrelid
+            AND idx.indexrelid = c2.oid
             AND c.relname = %s
     ''')
 
