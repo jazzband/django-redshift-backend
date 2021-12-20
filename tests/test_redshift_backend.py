@@ -223,17 +223,19 @@ class IntrospectionTest(unittest.TestCase):
 
             (select_metadata_call, fetchall_call, select_row_call) = mock_cursor.method_calls
 
-            self.assertEqual('execute', select_metadata_call[0])
-            executed_sql = norm_sql(select_metadata_call.args[0])
+            call_method, call_args, call_kwargs = select_metadata_call
+            self.assertEqual('execute', call_method)
+            executed_sql = norm_sql(call_args[0])
 
             self.assertEqual(self.expected_table_description_metadata, executed_sql)
 
             self.assertNotIn('collation', executed_sql)
             self.assertNotIn('unnest', executed_sql)
 
+            call_method, call_args, call_kwargs = select_row_call
             self.assertEqual(
                 norm_sql('SELECT * FROM "testapp_testmodel" LIMIT 1'),
-                select_row_call.args[0],
+                call_args[0],
             )
 
     def test_get_get_constraints_does_not_use_unsupported_functions(self):
@@ -281,19 +283,22 @@ class IntrospectionTest(unittest.TestCase):
             self.assertEqual(expected_call_sequence, actual_call_sequence)
 
             # Constraints query
-            executed_sql = norm_sql(calls[0].args[0])
+            call_method, call_args, call_kwargs = calls[0]
+            executed_sql = norm_sql(call_args[0])
             self.assertNotIn('collation', executed_sql)
             self.assertNotIn('unnest', executed_sql)
             self.assertEqual(self.expected_constraints_query, executed_sql)
 
             # Attributes query
-            executed_sql = norm_sql(calls[2].args[0])
+            call_method, call_args, call_kwargs = calls[2]
+            executed_sql = norm_sql(call_args[0])
             self.assertNotIn('collation', executed_sql)
             self.assertNotIn('unnest', executed_sql)
             self.assertEqual(self.expected_attributes_query, executed_sql)
 
             # Indexes query
-            executed_sql = norm_sql(calls[4].args[0])
+            call_method, call_args, call_kwargs = calls[4]
+            executed_sql = norm_sql(call_args[0])
             self.assertNotIn('collation', executed_sql)
             self.assertNotIn('unnest', executed_sql)
             self.assertEqual(self.expected_indexes_query, executed_sql)
