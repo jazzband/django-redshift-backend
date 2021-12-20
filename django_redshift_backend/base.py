@@ -584,22 +584,25 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
                 AND pg_catalog.pg_table_is_visible(c.oid)
         """, [table_name])
-        field_map = {line[0]: line[1:] for line in cursor.fetchall()}
+        field_map = {
+            column_name: (is_nullable, column_default)
+            for (column_name, is_nullable, column_default) in cursor.fetchall()
+        }
         cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
         return [
             FieldInfo(
-                name=line.name,
-                type_code=line.type_code,
-                display_size=line.display_size,
-                internal_size=line.internal_size,
-                precision=line.precision,
-                scale=line.scale,
-                null_ok=field_map[line.name][0],
-                default=field_map[line.name][1],
+                name=column.name,
+                type_code=column.type_code,
+                display_size=column.display_size,
+                internal_size=column.internal_size,
+                precision=column.precision,
+                scale=column.scale,
+                null_ok=field_map[column.name][0],
+                default=field_map[column.name][1],
                 collation=None,  # Redshift doesn't support user-defined collation sequences
                 # See https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
             )
-            for line in cursor.description
+            for column in cursor.description
         ]
 
     def get_constraints(self, cursor, table_name):
@@ -608,7 +611,7 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
         one or more columns. Also retrieve the definition of expression-based
         indexes.
         """
-        # Based code from Django 3.2
+        # Based on code from Django 3.2
         constraints = {}
         # Loop over the key table, collecting things as constraints. The column
         # array must return column names in the same order in which they were
@@ -623,30 +626,30 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 FROM pg_attribute AS fka
                 JOIN pg_class AS fkc ON fka.attrelid = fkc.oid
                 WHERE fka.attrelid = c.confrelid AND fka.attnum = c.confkey[1])
-                -- cl.reloptions
             FROM pg_constraint AS c
             JOIN pg_class AS cl ON c.conrelid = cl.oid
             WHERE cl.relname = %s AND pg_catalog.pg_table_is_visible(cl.oid)
         """, [table_name])
-        lines = [
+        constraint_records = [
             (conname, conkey, conrelid, contype, used_cols) for
             (conname, conkey, conrelid, contype, used_cols) in cursor.fetchall()
         ]
-        [table_oid] = {line[2] for line in lines}  # should be only one
-        attribute_query = cursor.execute("""
+        [table_oid] = {conrelid for _, _, conrelid, _, _ in constraint_records}  # should be one
+        cursor.execute("""
             SELECT 
                 attrelid,  -- table oid 
                 attname, 
                 attnum 
             FROM pg_attribute
-            WHERE pg_attribute.attrelid = %s;
+            WHERE pg_attribute.attrelid = %s
+            ORDER BY attnum;
         """, [table_oid])
         attribute_num_to_name_map = {
             attnum: attname
-            for _, attname, attnum in list(cursor.fetchall())
+            for _, attname, attnum in cursor.fetchall()
         }
 
-        for constraint, conkey, conrelid, kind, used_cols in lines:
+        for constraint, conkey, conrelid, kind, used_cols in constraint_records:
             constraints[constraint] = {
                 "columns": [attribute_num_to_name_map[column_id_int] for column_id_int in conkey],
                 "primary_key": kind == "p",
@@ -673,11 +676,11 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 AND idx.indexrelid = c2.oid
                 AND c.relname = %s
         """, [table_name])
-        lines = [
+        index_records = [
             (index_name, indrelid, indkey, unique, primary) for
             (index_name, indrelid, indkey, unique, primary) in cursor.fetchall()
         ]
-        for index_name, indrelid, indkey, unique, primary in lines:
+        for index_name, indrelid, indkey, unique, primary in index_records:
             if index_name not in constraints:
                 constraints[index_name] = {
                     "columns": [
