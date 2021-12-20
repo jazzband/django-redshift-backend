@@ -619,7 +619,7 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
         cursor.execute("""
             SELECT
                 c.conname,
-                c.conkey,
+                c.conkey::int[],
                 c.conrelid,
                 c.contype,
                 (SELECT fkc.relname || '.' || fka.attname
@@ -658,8 +658,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 idx.indkey,  -- indkey is of type "int2vector" and returns a space-separated string
                 idx.indisunique,
                 idx.indisprimary
-            FROM 
-                pg_catalog.pg_class c, 
+            FROM
+                pg_catalog.pg_class c,
                 pg_catalog.pg_class c2,
                 pg_catalog.pg_index idx
             WHERE c.oid = idx.indrelid
@@ -692,10 +692,10 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
 
     def _get_attribute_number_to_name_map_for_table(self, cursor, table_oid):
         cursor.execute("""
-            SELECT 
-                attrelid,  -- table oid 
+            SELECT
+                attrelid,  -- table oid
                 attnum,
-                attname 
+                attname
             FROM pg_attribute
             WHERE pg_attribute.attrelid = %s
             ORDER BY attrelid, attnum;

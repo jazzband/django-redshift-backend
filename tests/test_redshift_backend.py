@@ -176,7 +176,7 @@ class IntrospectionTest(unittest.TestCase):
     expected_constraints_query = norm_sql(
         u''' SELECT
             c.conname,
-            c.conkey,
+            c.conkey::int[],
             c.conrelid,
             c.contype,
             (SELECT fkc.relname || '.' || fka.attname
@@ -250,11 +250,13 @@ class IntrospectionTest(unittest.TestCase):
                 # conname, conkey, conrelid, contype, used_cols)
                 [('testapp_testmodel_testapp_testmodel_id_pkey', [1], 12345678, 'p', None)],
                 [
+                    # attrelid, attnum, attname
                     (12345678, 1, 'id'),
                     (12345678, 2, 'ctime'),
                     (12345678, 3, 'text'),
                     (12345678, 4, 'uuid'),
                 ],
+                # index_name, indrelid, indkey, unique, primary
                 [('testapp_testmodel_testapp_testmodel_id_pkey', 12345678, '1', True, True)],
             ]
 
