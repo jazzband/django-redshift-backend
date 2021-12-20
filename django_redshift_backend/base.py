@@ -588,7 +588,9 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             column_name: (is_nullable, column_default)
             for (column_name, is_nullable, column_default) in cursor.fetchall()
         }
-        cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
+        cursor.execute(
+            "SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name)
+        )
         return [
             FieldInfo(
                 name=column.name,
@@ -599,8 +601,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 scale=column.scale,
                 null_ok=field_map[column.name][0],
                 default=field_map[column.name][1],
-                collation=None,  # Redshift doesn't support user-defined collation sequences
-                # See https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
+                collation=None,  # Redshift doesn't support user-defined collation
+                # https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
             )
             for column in cursor.description
         ]
@@ -635,11 +637,14 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             (conname, conkey, conrelid, contype, used_cols) in cursor.fetchall()
         ]
         table_oid = list(constraint_records)[0][2]  # Assuming at least one constraint
-        attribute_num_to_name_map = self._get_attribute_number_to_name_map_for_table(cursor, table_oid)
+        attribute_num_to_name_map = self._get_attribute_number_to_name_map_for_table(
+            cursor, table_oid)
 
         for constraint, conkey, conrelid, kind, used_cols in constraint_records:
             constraints[constraint] = {
-                "columns": [attribute_num_to_name_map[column_id_int] for column_id_int in conkey],
+                "columns": [
+                    attribute_num_to_name_map[column_id_int] for column_id_int in conkey
+                ],
                 "primary_key": kind == "p",
                 "unique": kind in ["p", "u"],
                 "foreign_key": tuple(used_cols.split(".", 1)) if kind == "f" else None,
@@ -655,7 +660,7 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             SELECT
                 c2.relname,
                 idx.indrelid,
-                idx.indkey,  -- indkey is of type "int2vector" and returns a space-separated string
+                idx.indkey,  -- type "int2vector", returns space-separated string
                 idx.indisunique,
                 idx.indisprimary
             FROM

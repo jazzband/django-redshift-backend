@@ -199,8 +199,7 @@ class IntrospectionTest(unittest.TestCase):
         u'''SELECT
             c2.relname,
             idx.indrelid,
-            idx.indkey,
-            -- indkey is of type "int2vector" and returns a space-separated string
+            idx.indkey,  -- type "int2vector", returns space-separated string
             idx.indisunique,
             idx.indisprimary
         FROM
