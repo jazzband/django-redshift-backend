@@ -634,20 +634,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             (conname, conkey, conrelid, contype, used_cols) for
             (conname, conkey, conrelid, contype, used_cols) in cursor.fetchall()
         ]
-        [table_oid] = {conrelid for _, _, conrelid, _, _ in constraint_records}  # should be one
-        cursor.execute("""
-            SELECT 
-                attrelid,  -- table oid 
-                attname, 
-                attnum 
-            FROM pg_attribute
-            WHERE pg_attribute.attrelid = %s
-            ORDER BY attnum;
-        """, [table_oid])
-        attribute_num_to_name_map = {
-            attnum: attname
-            for _, attname, attnum in cursor.fetchall()
-        }
+        table_oid = list(constraint_records)[0][2]  # Assuming at least one constraint
+        attribute_num_to_name_map = self._get_attribute_number_to_name_map_for_table(cursor, table_oid)
 
         for constraint, conkey, conrelid, kind, used_cols in constraint_records:
             constraints[constraint] = {
@@ -670,7 +658,9 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 idx.indkey,  -- indkey is of type "int2vector" and returns a space-separated string
                 idx.indisunique,
                 idx.indisprimary
-            FROM pg_catalog.pg_class c, pg_catalog.pg_class c2,
+            FROM 
+                pg_catalog.pg_class c, 
+                pg_catalog.pg_class c2,
                 pg_catalog.pg_index idx
             WHERE c.oid = idx.indrelid
                 AND idx.indexrelid = c2.oid
@@ -699,6 +689,21 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 }
 
         return constraints
+
+    def _get_attribute_number_to_name_map_for_table(self, cursor, table_oid):
+        cursor.execute("""
+            SELECT 
+                attrelid,  -- table oid 
+                attnum,
+                attname 
+            FROM pg_attribute
+            WHERE pg_attribute.attrelid = %s
+            ORDER BY attrelid, attnum;
+        """, [table_oid])
+        return {
+            attnum: attname
+            for _, attnum, attname in cursor.fetchall()
+        }
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
