@@ -23,6 +23,7 @@ from django.db.backends.postgresql.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
+from django.db.models import Index
 
 from django.db.utils import NotSupportedError
 
@@ -600,6 +601,101 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             )
             for line in cursor.description
         ]
+
+    def get_constraints(self, cursor, table_name):
+        """
+        Retrieve any constraints or keys (unique, pk, fk, check, index) across
+        one or more columns. Also retrieve the definition of expression-based
+        indexes.
+        """
+        # Based code from Django 3.2
+        constraints = {}
+        # Loop over the key table, collecting things as constraints. The column
+        # array must return column names in the same order in which they were
+        # created.
+        cursor.execute("""
+            SELECT
+                c.conname,
+                c.conkey,
+                c.conrelid,
+                c.contype,
+                (SELECT fkc.relname || '.' || fka.attname
+                FROM pg_attribute AS fka
+                JOIN pg_class AS fkc ON fka.attrelid = fkc.oid
+                WHERE fka.attrelid = c.confrelid AND fka.attnum = c.confkey[1])
+                -- cl.reloptions
+            FROM pg_constraint AS c
+            JOIN pg_class AS cl ON c.conrelid = cl.oid
+            WHERE cl.relname = %s AND pg_catalog.pg_table_is_visible(cl.oid)
+        """, [table_name])
+        lines = [
+            (conname, conkey, conrelid, contype, used_cols) for
+            (conname, conkey, conrelid, contype, used_cols) in cursor.fetchall()
+        ]
+        [table_oid] = {line[2] for line in lines}  # should be only one
+        attribute_query = cursor.execute("""
+            SELECT 
+                attrelid,  -- table oid 
+                attname, 
+                attnum 
+            FROM pg_attribute
+            WHERE pg_attribute.attrelid = %s;
+        """, [table_oid])
+        attribute_num_to_name_map = {
+            attnum: attname
+            for _, attname, attnum in list(cursor.fetchall())
+        }
+
+        for constraint, conkey, conrelid, kind, used_cols in lines:
+            constraints[constraint] = {
+                "columns": [attribute_num_to_name_map[column_id_int] for column_id_int in conkey],
+                "primary_key": kind == "p",
+                "unique": kind in ["p", "u"],
+                "foreign_key": tuple(used_cols.split(".", 1)) if kind == "f" else None,
+                "check": kind == "c",
+                "index": False,
+                "definition": None,
+                "options": None,
+            }
+
+        # Now get indexes
+        # Based on code from Django 1.7
+        cursor.execute("""
+            SELECT
+                c2.relname,
+                idx.indrelid,
+                idx.indkey,  -- indkey is of type "int2vector" and returns a space-separated string
+                idx.indisunique,
+                idx.indisprimary
+            FROM pg_catalog.pg_class c, pg_catalog.pg_class c2,
+                pg_catalog.pg_index idx
+            WHERE c.oid = idx.indrelid
+                AND idx.indexrelid = c2.oid
+                AND c.relname = %s
+        """, [table_name])
+        lines = [
+            (index_name, indrelid, indkey, unique, primary) for
+            (index_name, indrelid, indkey, unique, primary) in cursor.fetchall()
+        ]
+        for index_name, indrelid, indkey, unique, primary in lines:
+            if index_name not in constraints:
+                constraints[index_name] = {
+                    "columns": [
+                        attribute_num_to_name_map[int(column_id_str)]
+                        for column_id_str in indkey.split(' ')
+                    ],
+                    "orders": [],  # Not implemented
+                    "primary_key": primary,
+                    "unique": unique,
+                    "foreign_key": None,
+                    "check": False,
+                    "index": True,
+                    "type": Index.suffix,  # Not implemented - assume default type
+                    "definition": None,  # Not implemented
+                    "options": None,  # Not implemented
+                }
+
+        return constraints
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
