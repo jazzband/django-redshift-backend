@@ -9,10 +9,7 @@ from django.core.management.color import no_style
 
 
 def norm_sql(sql):
-    r = sql
-    r = r.replace(' ', '')
-    r = r.replace('\n', '')
-    return r
+    return ' '.join(sql.split()).replace('( ', '(').replace(' )', ')').replace(' ;', ';')
 
 
 class DatabaseWrapperTest(unittest.TestCase):
