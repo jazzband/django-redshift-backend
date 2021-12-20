@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+from unittest import mock
 
 from django.db import connections
 from django.db.utils import NotSupportedError
@@ -79,6 +80,22 @@ expected_dml_distinct = norm_sql(
     FROM "testapp_testmodel"
 ''')
 
+expected_table_description_metadata = norm_sql(
+    u'''SELECT
+        a.attname AS column_name,
+        NOT (a.attnotnull OR (t.typtype = 'd' AND t.typnotnull)) AS is_nullable,
+        pg_get_expr(ad.adbin, ad.adrelid) AS column_default
+    FROM pg_attribute a
+    LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+    JOIN pg_type t ON a.atttypid = t.oid
+    JOIN pg_class c ON a.attrelid = c.oid
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
+        AND c.relname = %s
+        AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
+        AND pg_catalog.pg_table_is_visible(c.oid)
+''')
+
 
 class ModelTest(unittest.TestCase):
 
@@ -153,3 +170,28 @@ class MigrationTest(unittest.TestCase):
     def test_create_table_meta_keys(self):
         from testapp.models import TestModelWithMetaKeys
         self.check_model_creation(TestModelWithMetaKeys, expected_ddl_meta_keys)
+
+
+class IntrospectionTest(unittest.TestCase):
+
+    def test_get_table_description_does_not_use_collations(self):
+        conn = connections['default']
+        with mock.patch.object(conn, 'cursor') as mock_cursor_method:
+            mock_cursor = mock_cursor_method.return_value.__enter__.return_value
+            from testapp.models import TestModel
+            table_name = TestModel._meta.db_table
+
+            _table_description = conn.introspection.get_table_description(mock_cursor, table_name)
+
+            (select_metadata_call, fetchall_call, select_row_call) = mock_cursor.method_calls
+
+            self.assertEqual('execute', select_metadata_call[0])
+            executed_sql = norm_sql(select_metadata_call.args[0])
+
+            self.assertEqual(expected_table_description_metadata, executed_sql)
+            self.assertNotIn('collation', executed_sql)
+
+            self.assertEqual(
+                norm_sql('SELECT * FROM "testapp_testmodel" LIMIT 1'),
+                select_row_call.args[0],
+            )
