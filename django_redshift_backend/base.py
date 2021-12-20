@@ -12,6 +12,7 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
+from django.db.backends.base.introspection import FieldInfo
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.postgresql.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -20,7 +21,7 @@ from django.db.backends.postgresql.base import (
     DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
     DatabaseClient,
     DatabaseCreation as BasePGDatabaseCreation,
-    DatabaseIntrospection,
+    DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
 
 from django.db.utils import NotSupportedError
@@ -551,6 +552,54 @@ redshift_data_types = {
 
 class DatabaseCreation(BasePGDatabaseCreation):
     pass
+
+
+class DatabaseIntrospection(BasePGDatabaseIntrospection):
+    pass
+
+    def get_table_description(self, cursor, table_name):
+        """
+        Return a description of the table with the DB-API cursor.description
+        interface.
+        """
+        # Query the pg_catalog tables as cursor.description does not reliably
+        # return the nullable property and information_schema.columns does not
+        # contain details of materialized views.
+
+        # This function is based on the version from the Django postgres backend
+        # from before support for collations were introduced in Django 3.2
+        cursor.execute("""
+            SELECT
+                a.attname AS column_name,
+                NOT (a.attnotnull OR (t.typtype = 'd' AND t.typnotnull)) AS is_nullable,
+                pg_get_expr(ad.adbin, ad.adrelid) AS column_default
+            FROM pg_attribute a
+            LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+            JOIN pg_type t ON a.atttypid = t.oid
+            JOIN pg_class c ON a.attrelid = c.oid
+            JOIN pg_namespace n ON c.relnamespace = n.oid
+            WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
+                AND c.relname = %s
+                AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
+                AND pg_catalog.pg_table_is_visible(c.oid)
+        """, [table_name])
+        field_map = {line[0]: line[1:] for line in cursor.fetchall()}
+        cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
+        return [
+            FieldInfo(
+                name=line.name,
+                type_code=line.type_code,
+                display_size=line.display_size,
+                internal_size=line.internal_size,
+                precision=line.precision,
+                scale=line.scale,
+                null_ok=field_map[line.name][0],
+                default=field_map[line.name][1],
+                collation=None,  # Redshift doesn't support user-defined collation sequences
+                # See https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
+            )
+            for line in cursor.description
+        ]
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
