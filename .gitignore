@@ -10,3 +10,4 @@ dist/
 doc/_build/
 .coverage
 coverage.xml
+**/.env
