@@ -11,3 +11,4 @@ doc/_build/
 .coverage
 coverage.xml
 **/.env
+examples/**/migrations/*

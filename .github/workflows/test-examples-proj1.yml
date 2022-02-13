@@ -1,0 +1,56 @@
+name: Test examples/proj1
+
+on:
+  push:
+    paths:
+      - 'examples/proj1/*'
+  pull_request:
+    paths:
+      - 'examples/proj1/*'
+
+jobs:
+  build:
+    name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        python-version: ['3.10']
+        django-version: ['2.2', '3.1', '3.2']
+        include:
+          - django-version: 'main'
+            python-version: '3.10'
+
+    services:
+      postgres:
+        image: postgres:9.6-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      working-directory: examples/proj1
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+        python -m pip install psycopg2-binary
+
+    - name: tests
+      working-directory: examples/proj1
+      env:
+        ENV_FILE: .env.psql
+      run: |
+        python manage.py makemigrations testapp
+        python manage.py sqlmigrate testapp 0001
