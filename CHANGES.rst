@@ -9,6 +9,11 @@ General:
 * #87 Drop py2 wheel tag from release package file.
 * Add `CODE_OF_CONDUCT.rst` The linked text which has been referred to from CONTRIBUTING.rst is now included.
 
+
+Bug Fixes:
+
+* #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.
+
 Features:
 
 * #82 Add Python-3.10 support.
