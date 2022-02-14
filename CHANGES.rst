@@ -13,6 +13,7 @@ General:
 Bug Fixes:
 
 * #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.
+* #90, #13: fix database inspection capability with `manage.py inspectdb`. Thanks to Matt Fisher.
 
 Features:
 
