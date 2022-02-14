@@ -12,6 +12,7 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
+from django.db.backends.base.introspection import FieldInfo
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.postgresql.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
@@ -20,8 +21,9 @@ from django.db.backends.postgresql.base import (
     DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
     DatabaseClient,
     DatabaseCreation as BasePGDatabaseCreation,
-    DatabaseIntrospection,
+    DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
+from django.db.models import Index
 
 from django.db.utils import NotSupportedError
 
@@ -561,6 +563,162 @@ redshift_data_types = {
 
 class DatabaseCreation(BasePGDatabaseCreation):
     pass
+
+
+class DatabaseIntrospection(BasePGDatabaseIntrospection):
+    pass
+
+    def get_table_description(self, cursor, table_name):
+        """
+        Return a description of the table with the DB-API cursor.description
+        interface.
+        """
+        # Query the pg_catalog tables as cursor.description does not reliably
+        # return the nullable property and information_schema.columns does not
+        # contain details of materialized views.
+
+        # This function is based on the version from the Django postgres backend
+        # from before support for collations were introduced in Django 3.2
+        cursor.execute("""
+            SELECT
+                a.attname AS column_name,
+                NOT (a.attnotnull OR (t.typtype = 'd' AND t.typnotnull)) AS is_nullable,
+                pg_get_expr(ad.adbin, ad.adrelid) AS column_default
+            FROM pg_attribute a
+            LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+            JOIN pg_type t ON a.atttypid = t.oid
+            JOIN pg_class c ON a.attrelid = c.oid
+            JOIN pg_namespace n ON c.relnamespace = n.oid
+            WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
+                AND c.relname = %s
+                AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
+                AND pg_catalog.pg_table_is_visible(c.oid)
+        """, [table_name])
+        field_map = {
+            column_name: (is_nullable, column_default)
+            for (column_name, is_nullable, column_default) in cursor.fetchall()
+        }
+        cursor.execute(
+            "SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name)
+        )
+        return [
+            FieldInfo(
+                name=column.name,
+                type_code=column.type_code,
+                display_size=column.display_size,
+                internal_size=column.internal_size,
+                precision=column.precision,
+                scale=column.scale,
+                null_ok=field_map[column.name][0],
+                default=field_map[column.name][1],
+                collation=None,  # Redshift doesn't support user-defined collation
+                # https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
+            )
+            for column in cursor.description
+        ]
+
+    def get_constraints(self, cursor, table_name):
+        """
+        Retrieve any constraints or keys (unique, pk, fk, check, index) across
+        one or more columns. Also retrieve the definition of expression-based
+        indexes.
+        """
+        # Based on code from Django 3.2
+        constraints = {}
+        # Loop over the key table, collecting things as constraints. The column
+        # array must return column names in the same order in which they were
+        # created.
+        cursor.execute("""
+            SELECT
+                c.conname,
+                c.conkey::int[],
+                c.conrelid,
+                c.contype,
+                (SELECT fkc.relname || '.' || fka.attname
+                FROM pg_attribute AS fka
+                JOIN pg_class AS fkc ON fka.attrelid = fkc.oid
+                WHERE fka.attrelid = c.confrelid AND fka.attnum = c.confkey[1])
+            FROM pg_constraint AS c
+            JOIN pg_class AS cl ON c.conrelid = cl.oid
+            WHERE cl.relname = %s AND pg_catalog.pg_table_is_visible(cl.oid)
+        """, [table_name])
+        constraint_records = [
+            (conname, conkey, conrelid, contype, used_cols) for
+            (conname, conkey, conrelid, contype, used_cols) in cursor.fetchall()
+        ]
+        table_oid = list(constraint_records)[0][2]  # Assuming at least one constraint
+        attribute_num_to_name_map = self._get_attribute_number_to_name_map_for_table(
+            cursor, table_oid)
+
+        for constraint, conkey, conrelid, kind, used_cols in constraint_records:
+            constraints[constraint] = {
+                "columns": [
+                    attribute_num_to_name_map[column_id_int] for column_id_int in conkey
+                ],
+                "primary_key": kind == "p",
+                "unique": kind in ["p", "u"],
+                "foreign_key": tuple(used_cols.split(".", 1)) if kind == "f" else None,
+                "check": kind == "c",
+                "index": False,
+                "definition": None,
+                "options": None,
+            }
+
+        # Now get indexes
+        # Based on code from Django 1.7
+        cursor.execute("""
+            SELECT
+                c2.relname,
+                idx.indrelid,
+                idx.indkey,  -- type "int2vector", returns space-separated string
+                idx.indisunique,
+                idx.indisprimary
+            FROM
+                pg_catalog.pg_class c,
+                pg_catalog.pg_class c2,
+                pg_catalog.pg_index idx
+            WHERE c.oid = idx.indrelid
+                AND idx.indexrelid = c2.oid
+                AND c.relname = %s
+        """, [table_name])
+        index_records = [
+            (index_name, indrelid, indkey, unique, primary) for
+            (index_name, indrelid, indkey, unique, primary) in cursor.fetchall()
+        ]
+        for index_name, indrelid, indkey, unique, primary in index_records:
+            if index_name not in constraints:
+                constraints[index_name] = {
+                    "columns": [
+                        attribute_num_to_name_map[int(column_id_str)]
+                        for column_id_str in indkey.split(' ')
+                    ],
+                    "orders": [],  # Not implemented
+                    "primary_key": primary,
+                    "unique": unique,
+                    "foreign_key": None,
+                    "check": False,
+                    "index": True,
+                    "type": Index.suffix,  # Not implemented - assume default type
+                    "definition": None,  # Not implemented
+                    "options": None,  # Not implemented
+                }
+
+        return constraints
+
+    def _get_attribute_number_to_name_map_for_table(self, cursor, table_oid):
+        cursor.execute("""
+            SELECT
+                attrelid,  -- table oid
+                attnum,
+                attname
+            FROM pg_attribute
+            WHERE pg_attribute.attrelid = %s
+            ORDER BY attrelid, attnum;
+        """, [table_oid])
+        return {
+            attnum: attname
+            for _, attnum, attname in cursor.fetchall()
+        }
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
