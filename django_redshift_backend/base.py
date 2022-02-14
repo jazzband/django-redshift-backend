@@ -132,7 +132,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         return None
 
     def _create_index_sql(self, model, **kwargs):
-        # _create_index_sql only called from _create_like_index_sql on django/db/backends/postgresql/schema.py
+        # _create_index_sql only called from _create_like_index_sql
+        # on django/db/backends/postgresql/schema.py
         raise NotSupportedError("Redshift doesn't support INDEX")
 
     def alter_index_together(self, model, old_index_together, new_index_together):
