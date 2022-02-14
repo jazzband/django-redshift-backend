@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import os
 import unittest
 
 from django.db import connections
 from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
+from django.db.migrations.loader import MigrationLoader
+import pytest
 
 
 def norm_sql(sql):
@@ -153,3 +156,17 @@ class MigrationTest(unittest.TestCase):
     def test_create_table_meta_keys(self):
         from testapp.models import TestModelWithMetaKeys
         self.check_model_creation(TestModelWithMetaKeys, expected_ddl_meta_keys)
+
+    @pytest.mark.skipif(not os.environ.get('TEST_WITH_POSTGRES'),
+                        reason='postgres database is not exist')
+    def test_sqlmigrate(self):
+        from django.db import connection
+        loader = MigrationLoader(connection, replace_migrations=True, load=True)
+        app_label, migration_name = 'testapp', '0001'
+        migration = loader.get_migration_by_prefix(app_label, migration_name)
+        target = (app_label, migration.name)
+
+        plan = [(loader.graph.nodes[target], False)]
+        sql_statements = loader.collect_sql(plan)
+        print('\n'.join(sql_statements))
+        assert sql_statements  # It doesn't matter what SQL is generated.

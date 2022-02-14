@@ -18,6 +18,16 @@ jobs:
           - django-version: 'main'
             python-version: '3.10'
 
+    services:
+      postgres:
+        image: postgres:9.6-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: testing
+        ports:
+          - 5439:5432
+
     steps:
     - uses: actions/checkout@v2
 
@@ -50,6 +60,7 @@ jobs:
         tox -v
       env:
         DJANGO: ${{ matrix.django-version }}
+        TEST_WITH_POSTGRES: 1
 
     - name: Upload coverage
       uses: codecov/codecov-action@v1

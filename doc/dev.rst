@@ -35,6 +35,12 @@ Just run tox::
 
 tox have several sections for testing.
 
+To test the database migration as well, start postgres and test it as follows::
+
+   $ cd tests
+   $ docker-compose up -d
+   $ TEST_WITH_POSTGRES=1 tox
+
 CI (Continuous Integration)
 ----------------------------
 
