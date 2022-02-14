@@ -7,7 +7,6 @@ import django
 from django.db import connections
 from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
-from django.db.migrations.loader import MigrationLoader
 import pytest
 
 
