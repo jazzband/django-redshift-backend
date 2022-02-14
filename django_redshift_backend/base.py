@@ -24,7 +24,6 @@ from django.db.backends.postgresql.base import (
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
 from django.db.models import Index
-
 from django.db.utils import NotSupportedError
 
 from django_redshift_backend.distkey import DistKey
@@ -566,7 +565,6 @@ class DatabaseCreation(BasePGDatabaseCreation):
 
 
 class DatabaseIntrospection(BasePGDatabaseIntrospection):
-    pass
 
     def get_table_description(self, cursor, table_name):
         """
@@ -579,6 +577,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
 
         # This function is based on the version from the Django postgres backend
         # from before support for collations were introduced in Django 3.2
+        # https://github.com/django/django/blob/3.1.14/django/db/backends/
+        # postgresql/introspection.py#L66-L94
         cursor.execute("""
             SELECT
                 a.attname AS column_name,
@@ -624,6 +624,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
         indexes.
         """
         # Based on code from Django 3.2
+        # https://github.com/django/django/blob/3.2.12/django/db/backends/
+        # postgresql/introspection.py#L148-L182
         constraints = {}
         # Loop over the key table, collecting things as constraints. The column
         # array must return column names in the same order in which they were
@@ -666,6 +668,8 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
 
         # Now get indexes
         # Based on code from Django 1.7
+        # https://github.com/django/django/blob/1.7.11/django/db/backends/
+        # postgresql_psycopg2/introspection.py#L182-L207
         cursor.execute("""
             SELECT
                 c2.relname,
