@@ -25,7 +25,7 @@ from django.db.backends.postgresql.base import (
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
 from django.db.models import Index
-from django.db.utils import NotSupportedError
+from django.db.utils import NotSupportedError, ProgrammingError
 
 from django_redshift_backend.distkey import DistKey
 
@@ -551,6 +551,42 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 fields=', '.join(normalized_fields)))
 
         return " ".join(create_options)
+
+    def remove_field(self, model, field):
+        """
+        This customization will drop the SORTKEY if the `ProgrammingError` exception
+        with 'cannot drop sortkey' is raised for the 'django_content_type' table
+        migration.
+
+        Django's ContentType.name field was specified as ordering and was used for
+        SORTKEY on Redshift. A columns used for SORTKEY could not be dropped, so the
+        ProgrammingError exception was raised. This customization will allow us to drop
+        Django's ContentType.name.
+
+        This is not strictly correct, but since Django's migration does not keep track
+        of ordering changes, there is no other way to unconditionally remove SORTKEY.
+        """
+        try:
+            super().remove_field(model, field)
+        except ProgrammingError as e:
+            if 'cannot drop sortkey' not in str(e):
+                raise
+            if model._meta.db_table != 'django_content_type':
+                # https://github.com/jazzband/django-redshift-backend/issues/37
+                raise
+
+            # Reset connection if required
+            if self.connection.errors_occurred:
+                self.connection.close()
+                self.connection.connect()
+
+            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+            self.execute(
+                'ALTER TABLE %(table)s ALTER SORTKEY NONE;' % {
+                    "table": self.quote_name(model._meta.db_table),
+                }
+            )
+            super().remove_field(model, field)
 
 
 redshift_data_types = {
