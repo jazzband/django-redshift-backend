@@ -10,6 +10,7 @@ import re
 import uuid
 import logging
 
+import django
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.introspection import FieldInfo
@@ -594,10 +595,19 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
                 AND pg_catalog.pg_table_is_visible(c.oid)
         """, [table_name])
-        field_map = {
-            column_name: (is_nullable, column_default)
-            for (column_name, is_nullable, column_default) in cursor.fetchall()
-        }
+        # https://github.com/django/django/blob/stable/3.2.x/django/db/backends/postgresql/introspection.py#L85
+        # field_map = {line[0]: line[1:] for line in cursor.fetchall()}
+        field_map = {}
+        for column_name, is_nullable, column_default in cursor.fetchall():
+            _field_map = {
+                'null_ok': is_nullable,
+                'default': column_default,
+            }
+            if django.VERSION >= (3, 2):
+                # Redshift doesn't support user-defined collation
+                # https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
+                _field_map['collation'] = None
+            field_map[column_name] = _field_map
         cursor.execute(
             "SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name)
         )
@@ -609,10 +619,7 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
                 internal_size=column.internal_size,
                 precision=column.precision,
                 scale=column.scale,
-                null_ok=field_map[column.name][0],
-                default=field_map[column.name][1],
-                collation=None,  # Redshift doesn't support user-defined collation
-                # https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
+                **field_map[column.name]
             )
             for column in cursor.description
         ]
