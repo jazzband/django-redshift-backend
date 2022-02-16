@@ -92,13 +92,16 @@ Django Models
 Using sortkey
 -------------
 
-There is built-in support for this option for Django >= 1.9. To use `sortkey`, simply define an `ordering` on the model meta as follow::
+There is built-in support for this option for Django >= 1.9. To use `sortkey`, define an `ordering` on the model
+meta with the custom sortkey type `django_redshift_backend.SortKey` as follow::
 
   class MyModel(models.Model):
       ...
 
       class Meta:
-          ordering = ['col2']
+          ordering = [SortKey('col2')]
+
+`SortKey` in `ordering` are also valid as ordering in Django.
 
 N.B.: there is no validation of this option, instead we let Redshift validate it for you. Be sure to refer to the `documentation <http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_examples.html>`_.
 
@@ -106,7 +109,7 @@ Using distkey
 -------------
 
 There is built-in support for this option for Django >= 1.11. To use `distkey`, define an index on the model
-meta with the custom index type `django_redshift_backend.distkey.DistKey` with `fields` naming a single field::
+meta with the custom index type `django_redshift_backend.DistKey` with `fields` naming a single field::
 
   class MyModel(models.Model):
       ...
@@ -143,7 +146,7 @@ That is, to go from::
        ...
        migrations.AddIndex(
             model_name='facttable',
-            index=django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...'),
+            index=django_redshift_backend.DistKey(fields=['distkeycol'], name='...'),
         ),
     ]
 
@@ -160,7 +163,7 @@ To::
                 ...
             ],
             options={
-                'indexes': [django_redshift_backend.distkey.DistKey(fields=['distkeycol'], name='...')],
+                'indexes': [django_redshift_backend.DistKey(fields=['distkeycol'], name='...')],
             },
         ),
        ...

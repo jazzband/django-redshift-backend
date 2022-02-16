@@ -27,7 +27,7 @@ from django.db.backends.postgresql.base import (
 from django.db.models import Index
 from django.db.utils import NotSupportedError, ProgrammingError
 
-from django_redshift_backend.distkey import DistKey
+from django_redshift_backend.meta import DistKey, SortKey
 
 
 logger = logging.getLogger('django.db.backends')
@@ -542,13 +542,14 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             create_options.append("DISTKEY({})".format(normalized_field))
             # TODO: Support DISTSTYLE ALL.
 
-        if model._meta.ordering:
-            normalized_fields = [
-                quoted_column_name(field)
-                for field in model._meta.ordering
-            ]
+        sortkeys = [
+            quoted_column_name(field)
+            for field in model._meta.ordering
+            if isinstance(field, SortKey)
+        ]
+        if sortkeys:
             create_options.append("SORTKEY({fields})".format(
-                fields=', '.join(normalized_fields)))
+                fields=', '.join(sortkeys)))
 
         return " ".join(create_options)
 
@@ -558,10 +559,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         with 'cannot drop sortkey' is raised for the 'django_content_type' table
         migration.
 
-        Django's ContentType.name field was specified as ordering and was used for
-        SORTKEY on Redshift. A columns used for SORTKEY could not be dropped, so the
-        ProgrammingError exception was raised. This customization will allow us to drop
-        Django's ContentType.name.
+        Especially, django's ContentType.name field was specified as ordering and was
+        used for SORTKEY on Redshift. A columns used for SORTKEY could not be dropped,
+        so the ProgrammingError exception was raised. This customization will allow us
+        to drop Django's ContentType.name.
 
         This is not strictly correct, but since Django's migration does not keep track
         of ordering changes, there is no other way to unconditionally remove SORTKEY.
@@ -569,10 +570,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         try:
             super().remove_field(model, field)
         except ProgrammingError as e:
+            # https://github.com/jazzband/django-redshift-backend/issues/37
             if 'cannot drop sortkey' not in str(e):
-                raise
-            if model._meta.db_table != 'django_content_type':
-                # https://github.com/jazzband/django-redshift-backend/issues/37
                 raise
 
             # Reset connection if required

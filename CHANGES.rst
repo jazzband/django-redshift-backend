@@ -9,11 +9,27 @@ General:
 * #87 Drop py2 wheel tag from release package file.
 * Add `CODE_OF_CONDUCT.rst` The linked text which has been referred to from CONTRIBUTING.rst is now included.
 
+Incompatible Changes:
+
+* #??: To specify SORTKEY for Redshift, you must use `django_redshift_backend.SortKey` for
+  `Model.Meta.ordering` instead of bearer string.
+
+  **IMPORTANT**:
+  With this change, existing migration files that specify ordering are not affected.
+  If you want to apply SortKey to your migration files, please comment out the ordering option once and run
+  makemigrations, then comment in the ordering option and run makemigrations again.
+
+* #??: `django_redshift_backend.distkey.DistKey` is moved to `django_redshift_backend.DistKey`.
+  However old name is still supported for a compatibility.
 
 Bug Fixes:
 
 * #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.
 * #90, #13: fix database inspection capability with `manage.py inspectdb`. Thanks to Matt Fisher.
+* #37: fix Django `contenttype` migration that cause `ProgrammingError: cannot drop sortkey column
+  "name"` exception.
+* #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
+  specified as distkey/sortkey is not in the table "auth_permission"` exception.
 
 Features:
 

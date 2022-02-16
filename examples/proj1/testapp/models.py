@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from django_redshift_backend.base import DistKey
+from django_redshift_backend.base import DistKey, SortKey
 
 
 class TestModel(models.Model):
@@ -23,7 +23,7 @@ class TestModelWithMetaKeys(models.Model):
 
     class Meta:
         indexes = [DistKey(fields=['fk'])]
-        ordering = ['created_at', '-id']
+        ordering = [SortKey('created_at'), SortKey('-id')]
 
 
 class TestParentModel(models.Model):
