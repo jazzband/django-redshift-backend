@@ -22,6 +22,14 @@ Incompatible Changes:
 * #??: `django_redshift_backend.distkey.DistKey` is moved to `django_redshift_backend.DistKey`.
   However old name is still supported for a compatibility.
 
+* #??: Now django-redshift-backend doesn't support `can_rollback_ddl`.
+  Originally, Redshift did not support column name changes within a transaction.
+  Please refer https://github.com/jazzband/django-redshift-backend/issues/96
+
+* #??: Changed the behavior of implicit NOT NULL column addition: When adding a NOT NULL column, it was
+  implicitly changed to allow NULL, but it is now fixed to raise a ProgrammingError exception without
+  implicitly changing it. Adding NOT NULL with no default should be an error.
+
 Bug Fixes:
 
 * #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.

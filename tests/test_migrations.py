@@ -26,7 +26,7 @@ class MigrationTests(OperationTestBase):
             migrations.AddField(
                 model_name='Pony',
                 name='name',
-                field=models.CharField(max_length=10, verbose_name='name'),
+                field=models.CharField(max_length=10, verbose_name='name', default=''),
             ),
             migrations.AlterField(
                 model_name='Pony',
@@ -43,7 +43,7 @@ class MigrationTests(OperationTestBase):
         print('\n'.join(sqls))
         sqls = [s for s in sqls if not s.startswith('--')]
         self.assertEqual([
-            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
         ], sqls)
@@ -52,6 +52,7 @@ class MigrationTests(OperationTestBase):
     @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
     # def test_add_notnull_without_default_change_to_nullable(self):
     def test_add_notnull_without_default_raise_exception(self):
+        from django.db.utils import ProgrammingError
         new_state = self.set_up_test_model('test')
         operations = [
             migrations.AddField(
@@ -60,12 +61,9 @@ class MigrationTests(OperationTestBase):
                 field=models.CharField(max_length=10, verbose_name='name', null=False),
             ),
         ]
-        # sqls = self.apply_operations_and_collect_sql('test', new_state, operations)
-        # print('\n'.join(sqls))
-        # sqls = [s for s in sqls if not s.startswith('--')]
-        # self.assertIn('''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''', sqls)
-        with self.assertRaises(RuntimeError):
-            self.apply_operations_and_collect_sql('test', new_state, operations)
+        with self.assertRaises(ProgrammingError):
+            sqls = self.apply_operations_and_collect_sql('test', new_state, operations)
+            print(sqls)  # for debug
 
     @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
     @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
@@ -83,6 +81,55 @@ class MigrationTests(OperationTestBase):
         sqls = [s for s in sqls if not s.startswith('--')]
         self.assertEqual([
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+        ], sqls)
+
+    @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
+    @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+    def test_alter_type(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AlterField(
+                model_name='Pony',
+                name='weight',
+                field=models.CharField(max_length=10, null=False, default=''),
+            ),
+        ]
+        sqls = self.apply_operations_and_collect_sql('test', new_state, operations)
+        print('\n'.join(sqls))
+        sqls = [s for s in sqls if not s.startswith('--')]
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" varchar(10) DEFAULT '' NOT NULL;''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight";''',
+            '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
+        ], sqls)
+
+    @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
+    @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+    def test_change_default(self):
+        # https://github.com/jazzband/django-redshift-backend/issues/63
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=False, default=''),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=False, default='blink'),
+            ),
+        ]
+        sqls = self.apply_operations_and_collect_sql('test', new_state, operations)
+        print('\n'.join(sqls))
+        sqls = [s for s in sqls if not s.startswith('--')]
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) DEFAULT 'blink' NOT NULL;''',
+            '''UPDATE test_pony SET "name_tmp" = "name";''',
+            '''ALTER TABLE test_pony DROP COLUMN "name" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
 
     @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)

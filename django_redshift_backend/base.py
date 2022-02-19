@@ -247,22 +247,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             return self.create_model(field.remote_field.through)
 
         # Get the column's definition
-        if not field.null:
-            # ## WARNING: Redshift Can't ADD COLUMN with NOT NULL.
-            # https://github.com/jazzband/django-redshift-backend/issues/96
-            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
-            # To add column to existent table on Redshift, field.null must be allowed
-            msg = '\n'.join([
-                "!!! WARNING: ADD COLUMN WITH NULLABLE INSTEAD OF NOT NULL !!!",
-                "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
-                "Field {n}:",
-                "  expect: null={n.null}, type={ntype}",
-                "  actual: null=True, type={ntype}",
-            ])
-            msgfmt = dict(n=field, ntype=type(field))
-            logger.warning(msg.format(**msgfmt))
-            sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
-            field.null = True  # Redshift can't ADD COLUMN with NOT NULL
         definition, params = self.column_sql(model, field, include_default=True)
         # It might not actually have a column behind it
         if definition is None:
@@ -277,6 +261,12 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             "column": self.quote_name(field.column),
             "definition": definition,
         }
+        # ## Redshift
+        if not field.null and self.effective_default(field) is None:
+            # Redshift Can't add NOT NULL column without DEFAULT.
+            # https://github.com/jazzband/django-redshift-backend/issues/96
+            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+            raise ProgrammingError(sql % params)
         self.execute(sql, params)
 
         # ## original BasePGDatabaseSchemaEditor.add_field drop default here
@@ -412,7 +402,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Size is changed
         elif (type(old_field) == type(new_field) and
               old_field.max_length is not None and
-              new_field.max_length is not None):
+              new_field.max_length is not None and
+              old_field.max_length != new_field.max_length):
             # if shrink size as `old_field.max_length > new_field.max_length` and
             # larger data in database, this change will raise exception.
             fragment, other_actions = self._alter_column_type_sql(
@@ -428,7 +419,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # Type or default is changed?
         elif (old_type != new_type) or needs_database_default:
-            breakpoint()
             # ## To change column type or default, We need this migration sequence:
             # ##
             # ## 1. Add new column with temporary name
@@ -437,23 +427,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             # ## 4. Rename temporary column name to original column name
 
             # ## ALTER TABLE <table> ADD COLUMN 'tmp' <type> DEFAULT <value>
-            if (not new_field.null and new_default is None):
-                # ## WARNING: Redshift Can't ADD COLUMN with NOT NULL.
-                # https://github.com/jazzband/django-redshift-backend/issues/96
-                # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
-                # To add column to existent table on Redshift, field.null must be allowed
-                msg = '\n'.join([
-                    "!!! WARNING: ADD COLUMN WITH NULLABLE INSTEAD OF NOT NULL !!!",
-                    "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
-                    "Field {n}:",
-                    "  expect: null={n.null}, type={ntype}",
-                    "  actual: null=True, type={ntype}",
-                ])
-                msgfmt = dict(o=old_field, n=new_field, otype=old_type, ntype=new_type)
-                logger.warning(msg.format(**msgfmt))
-                sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
-                new_field.null = True  # Redshift can't ADD COLUMN with NOT NUL without default
-
             definition, params = self.column_sql(model, new_field, include_default=True)
             new_defaults = [new_default] if new_default is not None else []
             actions.append((
