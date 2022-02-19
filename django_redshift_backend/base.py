@@ -7,6 +7,7 @@ from __future__ import absolute_import
 
 from copy import deepcopy
 import re
+import sys
 import uuid
 import logging
 
@@ -44,6 +45,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     allows_group_by_selected_pks = False
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
+    can_rollback_ddl = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
@@ -245,8 +247,22 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             return self.create_model(field.remote_field.through)
 
         # Get the column's definition
-        # ## To add column to existent table on Redshift, field.null must be allowed
-        field.null = True
+        if not field.null:
+            # ## WARNING: Redshift Can't ADD COLUMN with NOT NULL.
+            # https://github.com/jazzband/django-redshift-backend/issues/96
+            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+            # To add column to existent table on Redshift, field.null must be allowed
+            msg = '\n'.join([
+                "!!! WARNING: ADD COLUMN WITH NULLABLE INSTEAD OF NOT NULL !!!",
+                "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
+                "Field {n}:",
+                "  expect: null={n.null}, type={ntype}",
+                "  actual: null=True, type={ntype}",
+            ])
+            msgfmt = dict(n=field, ntype=type(field))
+            logger.warning(msg.format(**msgfmt))
+            sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
+            field.null = True  # Redshift can't ADD COLUMN with NOT NULL
         definition, params = self.column_sql(model, field, include_default=True)
         # It might not actually have a column behind it
         if definition is None:
@@ -364,8 +380,55 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             new_default is not None and
             not self.skip_default(new_field)
         )
+        # column type changed (NG pattern)
+        if (old_type != new_type and (
+                old_field.unique or new_field.unique or
+                old_field.primary_key or new_field.primary_key or
+                old_field.is_relation or new_field.is_relation)):
+            # ## WARNING: Redshift Can't ADD/ALTER/DROP COLUMN with UNIQUE, PRIMARY KEY or FOREIGN KEY.
+            # https://github.com/jazzband/django-redshift-backend/issues/96
+            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+            fragment, other_actions = self._alter_column_type_sql(
+                model, old_field, new_field, new_type
+            )
+            sql = self.sql_alter_column % {
+                "table": self.quote_name(model._meta.db_table),
+                "changes": fragment[0],
+            }
+            msg = '\n'.join([
+                "!!! WARNING: SKIPPED ALTER COLUMN SIZE WITH PRIMARY KEY, UNIQUE, FOREIGN KEY !!!",
+                "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
+                "Field {n}:",
+                "  from: primary_key={o.primary_key}, unique={o.unique}, is_relation={o.is_relation}, type={otype}",
+                "    to: primary_key={n.primary_key}, unique={n.unique}, is_relation={n.is_relation}, type={ntype}",
+                "SQL:",
+                "  expect: {sql!r}",
+                "  actual: SKIPPED",
+            ])
+            msgfmt = dict(sql=sql, o=old_field, n=new_field, otype=old_type, ntype=new_type)
+            logger.warning(msg.format(**msgfmt))
+            sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
+
+        # Size is changed
+        elif (type(old_field) == type(new_field) and
+              old_field.max_length is not None and
+              new_field.max_length is not None):
+            # if shrink size as `old_field.max_length > new_field.max_length` and
+            # larger data in database, this change will raise exception.
+            fragment, other_actions = self._alter_column_type_sql(
+                model, old_field, new_field, new_type
+            )
+            actions.append((
+                self.sql_alter_column % {
+                    "table": self.quote_name(model._meta.db_table),
+                    "changes": fragment[0],
+                },
+                fragment[1]
+            ))
+
         # Type or default is changed?
-        if (old_type != new_type) or needs_database_default:
+        elif (old_type != new_type) or needs_database_default:
+            breakpoint()
             # ## To change column type or default, We need this migration sequence:
             # ##
             # ## 1. Add new column with temporary name
@@ -374,6 +437,23 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             # ## 4. Rename temporary column name to original column name
 
             # ## ALTER TABLE <table> ADD COLUMN 'tmp' <type> DEFAULT <value>
+            if (not new_field.null and new_default is None):
+                # ## WARNING: Redshift Can't ADD COLUMN with NOT NULL.
+                # https://github.com/jazzband/django-redshift-backend/issues/96
+                # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+                # To add column to existent table on Redshift, field.null must be allowed
+                msg = '\n'.join([
+                    "!!! WARNING: ADD COLUMN WITH NULLABLE INSTEAD OF NOT NULL !!!",
+                    "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
+                    "Field {n}:",
+                    "  expect: null={n.null}, type={ntype}",
+                    "  actual: null=True, type={ntype}",
+                ])
+                msgfmt = dict(o=old_field, n=new_field, otype=old_type, ntype=new_type)
+                logger.warning(msg.format(**msgfmt))
+                sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
+                new_field.null = True  # Redshift can't ADD COLUMN with NOT NUL without default
+
             definition, params = self.column_sql(model, new_field, include_default=True)
             new_defaults = [new_default] if new_default is not None else []
             actions.append((
