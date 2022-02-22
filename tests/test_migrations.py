@@ -106,6 +106,37 @@ class MigrationTests(OperationTestBase):
 
     @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
     @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+    def test_alter_notnull_with_default(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=True),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=False, default=''),
+            ),
+        ]
+        sqls = self.apply_operations_and_collect_sql('test', new_state, operations)
+        print('\n'.join(sqls))
+        sqls = [s for s in sqls if not s.startswith('--')]
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) DEFAULT '' NOT NULL;''',
+            '''UPDATE test_pony SET "name_tmp" = "name";''',
+            '''ALTER TABLE test_pony DROP COLUMN "name" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
+        ], sqls)
+
+    # ## Django usually does not use in-database defaults
+    # ## ref: https://github.com/django/django/blob/3.2.12/django/db/backends/base/schema.py#L524
+    # ## django-redshift-backend also does not support in-database defaults
+    @pytest.mark.skip('django-redshift-backend does not support in-database defaults')
+    @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
+    @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
     def test_change_default(self):
         # https://github.com/jazzband/django-redshift-backend/issues/63
         new_state = self.set_up_test_model('test')
@@ -148,10 +179,10 @@ class MigrationTests(OperationTestBase):
         print('\n'.join(sqls))
         sqls = [s for s in sqls if not s.startswith('--')]
         self.assertEqual([
-            '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) NULL;''',
-            '''UPDATE "test_pony" SET "name_tmp"="name";''',
-            '''ALTER TABLE "test_pony" DROP COLUMN "name";''',
-            '''ALTER TABLE "test_pony" RENAME COLUMN "name_tmp" TO "name";''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" double precision NULL;''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight";''',
+            '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
 
     def apply_operations_and_collect_sql(self, app_label, project_state, operations, atomic=True):
