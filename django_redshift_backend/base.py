@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 from copy import deepcopy
 import re
-import sys
 import uuid
 import logging
 
@@ -125,6 +124,8 @@ def _related_non_m2m_objects(old_field, new_field):
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
     sql_create_table = "CREATE TABLE %(table)s (%(definition)s) %(options)s"
+    sql_delete_fk = "ALTER TABLE %(table)s DROP CONSTRAINT %(name)s"
+
     if django.VERSION < (3,):
         # to remove "USING %(column)s::%(type)s"
         sql_alter_column_type = "ALTER COLUMN %(column)s TYPE %(type)s"
@@ -534,13 +535,16 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             fragment, other_actions = self._alter_column_type_sql(
                 new_rel.related_model, old_rel.field, new_rel.field, rel_type
             )
-            self.execute(
-                self.sql_alter_column % {
-                    "table": self.quote_name(new_rel.related_model._meta.db_table),
-                    "changes": fragment[0],
-                },
-                fragment[1],
-            )
+            # ## original assumes only alters, so adding an ALTER TABLE clause
+            # self.execute(
+            #     self.sql_alter_column % {
+            #         "table": self.quote_name(new_rel.related_model._meta.db_table),
+            #         "changes": fragment[0],
+            #     },
+            #     fragment[1],
+            # )
+            # ## Redshift executes ADD and UPDATE on alter, so the fragment[0] is a complete sentence
+            self.execute(fragment[0], fragment[1])
             for sql, params in other_actions:
                 self.execute(sql, params)
         # Does it have a foreign key?
@@ -649,13 +653,11 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # an ALTER TABLE statement and a list of extra (sql, params) tuples to
         # run once the field is altered.
         # """
+        fragment = None  # ('', [])
+        actions = []
+
         old_db_params = old_field.db_parameters(connection=self.connection)
         old_type = old_db_params['type']
-        old_default = self.effective_default(old_field)
-        new_default = self.effective_default(new_field)
-
-        fragment = ('', [])
-        actions = []
 
         # Default change?
         old_default = self.effective_default(old_field)
@@ -665,52 +667,60 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             new_default is not None and
             not self.skip_default(new_field)
         )
-        # column type changed (NG pattern)
-        # MEMO: for a future, another procedure to ALTER:
-        #   1. once remove UNIQUE, PKEY, FK
-        #   2. alter column
-        #   3. add UNIQUE, PKEY, FK again
-        if (old_type != new_type and (
-                old_field.unique or new_field.unique or
-                old_field.primary_key or new_field.primary_key or
-                old_field.is_relation or new_field.is_relation)):
-            # ## WARNING: Redshift Can't ADD/ALTER/DROP COLUMN with UNIQUE, PRIMARY KEY or FOREIGN KEY.
-            # https://github.com/jazzband/django-redshift-backend/issues/96
-            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
-            _fragment = self.sql_alter_column_type % {
-                "column": self.quote_name(new_field.column),
-                "type": new_type,
-            }
-            sql = self.sql_alter_column % {
-                "table": self.quote_name(model._meta.db_table),
-                "changes": _fragment,
-            }
-            msg = '\n'.join([
-                "!!! WARNING: SKIPPED ALTER COLUMN SIZE WITH PRIMARY KEY, UNIQUE, FOREIGN KEY !!!",
-                "ref: https://github.com/jazzband/django-redshift-backend/issues/96",
-                "Field {n}:",
-                "  from: primary_key={o.primary_key}, unique={o.unique}, is_relation={o.is_relation}, type={otype}",
-                "    to: primary_key={n.primary_key}, unique={n.unique}, is_relation={n.is_relation}, type={ntype}",
-                "SQL:",
-                "  expect: {sql!r}",
-                "  actual: SKIPPED",
-            ])
-            msgfmt = dict(sql=sql, o=old_field, n=new_field, otype=old_type, ntype=new_type)
-            logger.warning(msg.format(**msgfmt))
-            sys.stdout.write('\n\n' + msg.format(**msgfmt) + '\n\n')
-            # actions.append(['', []])
-            # self.sql_alter_column = ''  # cancel  # FIXME comment and impl
-            # FIXME: need UnitTest
-            breakpoint()
 
         # Size is changed
-        elif (type(old_field) == type(new_field) and
-              old_field.max_length is not None and
-              new_field.max_length is not None and
-              old_field.max_length != new_field.max_length):
+        if (type(old_field) == type(new_field) and
+                old_field.max_length is not None and
+                new_field.max_length is not None and
+                old_field.max_length != new_field.max_length):
             # if shrink size as `old_field.max_length > new_field.max_length` and
             # larger data in database, this change will raise exception.
-            fragment = (
+
+            # ## Redshift can't alter column size for primary key, unique, foreign key
+            # https://github.com/jazzband/django-redshift-backend/issues/96
+            # https://docs.aws.amazon.com/en_us/redshift/latest/dg/r_ALTER_TABLE.html
+            # another procedure to ALTER:
+            #   1. once remove UNIQUE (, PKEY, FK)
+            #   2. alter column
+            #   3. add UNIQUE (, PKEY, FK) again
+
+            # 0. Find the unique constraint for this field
+            def get_constraint(model, field, unique=None, primary_key=None, foreign_key=None):
+                meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
+                constraint_names = self._constraint_names(
+                    model, [field.column], unique=unique, primary_key=primary_key, foreign_key=foreign_key,
+                    exclude=meta_constraint_names,
+                )
+                if not constraint_names:
+                    constraint_name = None
+                elif len(constraint_names) == 1:
+                    constraint_name = constraint_names[0]
+                else:
+                    raise ValueError("Found wrong number (%s) of unique constraints for %s.%s" % (
+                        len(constraint_names),
+                        model._meta.db_table,
+                        old_field.column,
+                    ))
+                return constraint_name
+
+            unique_constraint = pk_constraint = fk_constraint = None
+            if old_field.unique and new_field.unique:
+                unique_constraint = get_constraint(model, old_field, unique=True, primary_key=False)
+            elif old_field.primary_key and new_field.primary_key:
+                pk_constraint = get_constraint(model, old_field, primary_key=True)
+            elif old_field.is_relation and new_field.is_relation:
+                fk_constraint = get_constraint(model, old_field, foreign_key=True)
+
+            # 1. once remove UNIQUE, PKEY, FK
+            if unique_constraint:
+                actions.append((self._delete_unique_sql(model, unique_constraint), []))
+            elif pk_constraint:
+                actions.append((self._delete_primary_key_sql(model, pk_constraint), []))
+            elif fk_constraint:
+                actions.append((self._delete_fk_sql(model, fk_constraint), []))
+
+            # 2. alter column
+            actions.append((
                 self.sql_alter_column % {
                     "table": self.quote_name(model._meta.db_table),
                     "changes": self.sql_alter_column_type % {
@@ -719,11 +729,23 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                     }
                 },
                 []
-            )
+            ))
+            # 3. add UNIQUE, PKEY, FK again
+            if unique_constraint:
+                actions.append((self._create_unique_sql(model, [new_field.column], unique_constraint), []))
+            elif pk_constraint:
+                actions.append((self._create_primary_key_sql(model, pk_constraint), []))  # FIXME
+            elif fk_constraint:
+                actions.append((self._create_fk_sql(model, fk_constraint), []))  # FIXME
+            fragment = actions.pop(0)
 
         # Type or default is changed?
         elif (old_type != new_type) or needs_database_default:
             fragment, actions = self._alter_column_with_recreate(model, old_field, new_field)
+
+        # other case
+        else:
+            raise ValueError('django-redshift-backend doesnt support this alter case.')
 
         return fragment, actions
 
