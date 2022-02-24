@@ -14,7 +14,7 @@ import django
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.introspection import FieldInfo
-from django.db.backends.base.schema import _is_relevant_relation
+from django.db.backends.base.schema import _is_relevant_relation, _related_non_m2m_objects
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.ddl_references import Statement
 from django.db.backends.postgresql.base import (
@@ -106,19 +106,6 @@ class DatabaseOperations(BasePGDatabaseOperations):
                 'DISTINCT ON fields is not supported by this database backend'
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
-
-
-def _related_non_m2m_objects(old_field, new_field):
-    # Filters out m2m objects from reverse relations.
-    # Returns (old_relation, new_relation) tuples.
-    return zip(
-        (obj
-         for obj in old_field.model._meta.related_objects
-         if not obj.field.many_to_many),
-        (obj
-         for obj in new_field.model._meta.related_objects
-         if not obj.field.many_to_many)
-    )
 
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
