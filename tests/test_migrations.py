@@ -112,15 +112,12 @@ class MigrationTests(OperationTestBase):
         ]
 
         with self.collect_sql() as sqls:
-            with mock.patch(
-                    'django_redshift_backend.base.DatabaseSchemaEditor._create_index_name',
-                    lambda self, table_name, column_names, suffix="": f"{table_name}_pkey"):
-                self.apply_operations('test', new_state, operations)
+            self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
             '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_pkey";''',
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_pkey" PRIMARY KEY ("name");'''
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_2c070d2a_pk" PRIMARY KEY ("name");''',
         ], sqls)
 
     def test_alter_size_for_fk(self):
@@ -153,9 +150,13 @@ class MigrationTests(OperationTestBase):
             self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
-            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_name_key";''',
-            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_key" UNIQUE ("name");'''
+            '''ALTER TABLE "test_rider" DROP CONSTRAINT "test_rider_pony_id_3c028c84_fk_test_pony_id";''',
+            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_pkey";''',
+            '''ALTER TABLE "test_pony" ALTER COLUMN "id" TYPE varchar(20);''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_id_f5124350_pk" PRIMARY KEY ("id");''',
+            '''ALTER TABLE "test_rider" ALTER COLUMN "pony_id" TYPE varchar(20);''',
+            ('''ALTER TABLE "test_rider" ADD CONSTRAINT "test_rider_pony_id_3c028c84_fk"'''
+                ''' FOREIGN KEY ("pony_id") REFERENCES "test_pony" ("id");'''),
         ], sqls)
 
     def test_add_notnull_without_default_raise_exception(self):

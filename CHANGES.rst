@@ -45,7 +45,7 @@ Features:
 * #90, #13: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
   Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
-* #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY.
+* #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY, FOREIGN KEY.
 
 2.1.0 (2021/09/23)
 ------------------

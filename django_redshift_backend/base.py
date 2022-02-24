@@ -686,11 +686,21 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             not self.skip_default(new_field)
         )
 
+        # Size change?
+        def _get_max_length(field):
+            if field.is_relation:
+                max_length = field.foreign_related_fields[0].max_length
+            else:
+                max_length = field.max_length
+            return max_length
+        old_max_length = _get_max_length(old_field)
+        new_max_length = _get_max_length(new_field)
+
         # Size is changed
         if (type(old_field) == type(new_field) and
-                old_field.max_length is not None and
-                new_field.max_length is not None and
-                old_field.max_length != new_field.max_length):
+                old_max_length is not None and
+                new_max_length is not None and
+                old_max_length != new_max_length):
             # if shrink size as `old_field.max_length > new_field.max_length` and
             # larger data in database, this change will raise exception.
 
