@@ -26,14 +26,13 @@ Incompatible Changes:
   Originally, Redshift did not support column name changes within a transaction.
   Please refer https://github.com/jazzband/django-redshift-backend/issues/96
 
-* #??: Changed the behavior of implicit NOT NULL column addition: When adding a NOT NULL column, it was
-  implicitly changed to allow NULL, but it is now fixed to raise a ProgrammingError exception without
-  implicitly changing it. Adding NOT NULL with no default should be an error.
+* #??: changed the behavior of implicit not null column addition.
+  previously, adding a not null column was implicitly changed to allow null.
+  now adding not null without default raises a programmingerror exception.
 
 Bug Fixes:
 
 * #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.
-* #90, #13: fix database inspection capability with `manage.py inspectdb`. Thanks to Matt Fisher.
 * #37: fix Django `contenttype` migration that cause `ProgrammingError: cannot drop sortkey column
   "name"` exception.
 * #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
@@ -43,6 +42,8 @@ Features:
 
 * #82 Add Python-3.10 support.
 * #82 Drop Django-3.0 support.
+* #90, #13: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
+  Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
 * #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY.
 
