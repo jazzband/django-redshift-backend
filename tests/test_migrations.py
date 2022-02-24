@@ -112,12 +112,15 @@ class MigrationTests(OperationTestBase):
         ]
 
         with self.collect_sql() as sqls:
-            self.apply_operations('test', new_state, operations)
+            with mock.patch(
+                    'django_redshift_backend.base.DatabaseSchemaEditor._create_index_name',
+                    lambda self, table_name, column_names, suffix="": f"{table_name}_pkey"):
+                self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
-            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_name_key";''',
+            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_pkey";''',
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_key" UNIQUE ("name");'''
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_pkey" PRIMARY KEY ("name");'''
         ], sqls)
 
     def test_alter_size_for_fk(self):
@@ -125,8 +128,6 @@ class MigrationTests(OperationTestBase):
             migrations.CreateModel(
                 'Pony',
                 [
-                    # ('id', models.AutoField(primary_key=True)),
-                    # ('name', models.CharField(max_length=10, unique=True)),
                     ('id', models.CharField(max_length=10, primary_key=True)),
                 ],
             ),

@@ -642,6 +642,24 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # ## Redshift needs 4 step alter
         return self._alter_column_with_recreate(model, old_field, new_field)
 
+    def _get_constraint(self, model, field, unique=None, primary_key=None, foreign_key=None):
+        meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
+        constraint_names = self._constraint_names(
+            model, [field.column], unique=unique, primary_key=primary_key, foreign_key=foreign_key,
+            exclude=meta_constraint_names,
+        )
+        if not constraint_names:
+            constraint_name = None
+        elif len(constraint_names) == 1:
+            constraint_name = constraint_names[0]
+        else:
+            raise ValueError("Found wrong number (%s) of unique constraints for %s.%s" % (
+                len(constraint_names),
+                model._meta.db_table,
+                field.column,
+            ))
+        return constraint_name
+
     # override to avoid `USING %(column)s::%(type)s` on postgres/schema.py
     def _alter_column_type_sql(self, model, old_field, new_field, new_type):
         # """
@@ -685,31 +703,14 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             #   3. add UNIQUE (, PKEY, FK) again
 
             # 0. Find the unique constraint for this field
-            def get_constraint(model, field, unique=None, primary_key=None, foreign_key=None):
-                meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
-                constraint_names = self._constraint_names(
-                    model, [field.column], unique=unique, primary_key=primary_key, foreign_key=foreign_key,
-                    exclude=meta_constraint_names,
-                )
-                if not constraint_names:
-                    constraint_name = None
-                elif len(constraint_names) == 1:
-                    constraint_name = constraint_names[0]
-                else:
-                    raise ValueError("Found wrong number (%s) of unique constraints for %s.%s" % (
-                        len(constraint_names),
-                        model._meta.db_table,
-                        old_field.column,
-                    ))
-                return constraint_name
 
             unique_constraint = pk_constraint = fk_constraint = None
-            if old_field.unique and new_field.unique:
-                unique_constraint = get_constraint(model, old_field, unique=True, primary_key=False)
+            if old_field.unique and new_field.unique and not(old_field.primary_key or new_field.primary_key):
+                unique_constraint = self._get_constraint(model, old_field, unique=True, primary_key=False)
             elif old_field.primary_key and new_field.primary_key:
-                pk_constraint = get_constraint(model, old_field, primary_key=True)
+                pk_constraint = self._get_constraint(model, old_field, primary_key=True)
             elif old_field.is_relation and new_field.is_relation:
-                fk_constraint = get_constraint(model, old_field, foreign_key=True)
+                fk_constraint = self._get_constraint(model, old_field, foreign_key=True)
 
             # 1. once remove UNIQUE, PKEY, FK
             if unique_constraint:
@@ -734,9 +735,9 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             if unique_constraint:
                 actions.append((self._create_unique_sql(model, [new_field.column], unique_constraint), []))
             elif pk_constraint:
-                actions.append((self._create_primary_key_sql(model, pk_constraint), []))  # FIXME
+                actions.append((self._create_primary_key_sql(model, new_field), []))
             elif fk_constraint:
-                actions.append((self._create_fk_sql(model, fk_constraint), []))  # FIXME
+                actions.append((self._create_fk_sql(model, new_field, fk_constraint), []))  # FIXME: fk_constraint
             fragment = actions.pop(0)
 
         # Type or default is changed?

@@ -44,6 +44,7 @@ Features:
 * #82 Add Python-3.10 support.
 * #82 Drop Django-3.0 support.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
+* #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY.
 
 2.1.0 (2021/09/23)
 ------------------
