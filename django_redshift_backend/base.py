@@ -46,7 +46,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     allows_group_by_selected_pks = False
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
-    can_rollback_ddl = False
+    can_rollback_ddl = False                  # django-redshift-backend #96
     supports_combined_alters = False          # since django-1.8
 
 

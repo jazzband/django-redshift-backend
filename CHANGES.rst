@@ -23,7 +23,7 @@ Incompatible Changes:
   However old name is still supported for a compatibility.
 
 * #??: Now django-redshift-backend doesn't support `can_rollback_ddl`.
-  Originally, Redshift did not support column name changes within a transaction.
+  Originally, Redshift did not support column name/type(size) changes within a transaction.
   Please refer https://github.com/jazzband/django-redshift-backend/issues/96
 
 * #??: changed the behavior of implicit not null column addition.
