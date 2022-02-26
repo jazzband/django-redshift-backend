@@ -51,8 +51,8 @@ Bug Fixes:
   "name"` exception.
 * #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
   specified as distkey/sortkey is not in the table "auth_permission"` exception.
-2.1.0 (2021/09/23)
 
+2.1.0 (2021/09/23)
 ------------------
 
 General:
