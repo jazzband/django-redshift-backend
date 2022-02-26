@@ -32,7 +32,7 @@ Incompatible Changes:
 
 Bug Fixes:
 
-* #92, #93: since django-3.0 sqlmigrate (and migrate) does not work.
+* #92,#93: since django-3.0 sqlmigrate (and migrate) does not work.
 * #37: fix Django `contenttype` migration that cause `ProgrammingError: cannot drop sortkey column
   "name"` exception.
 * #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
@@ -42,7 +42,7 @@ Features:
 
 * #82 Add Python-3.10 support.
 * #82 Drop Django-3.0 support.
-* #90, #13: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
+* #90,#13,#8: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
   Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
 * #97 Support VARCHAR size changing for UNIQUE, PRIMARY KEY, FOREIGN KEY.
