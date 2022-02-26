@@ -37,6 +37,7 @@ logger = logging.getLogger('django.db.backends')
 
 
 class DatabaseFeatures(BasePGDatabaseFeatures):
+    minimum_database_version = (8,)           # Redshift is postgres 8.0.2
     can_return_id_from_insert = False         # old name until django-2.x
     can_return_ids_from_bulk_insert = False   # old name until django-2.x
     can_return_columns_from_insert = False    # new name since django-3.0
