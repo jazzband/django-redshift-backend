@@ -30,14 +30,6 @@ Incompatible Changes:
   previously, adding a not null column was implicitly changed to allow null.
   now adding not null without default raises a programmingerror exception.
 
-Bug Fixes:
-
-* #92,#93: since django-3.0 sqlmigrate (and migrate) does not work.
-* #37: fix Django `contenttype` migration that cause `ProgrammingError: cannot drop sortkey column
-  "name"` exception.
-* #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
-  specified as distkey/sortkey is not in the table "auth_permission"` exception.
-
 Features:
 
 * #82 Add Python-3.10 support.
@@ -52,7 +44,15 @@ Features:
   One limitation is that the DEFAULT value is set to match the type. This is because the only way for
   Redshift to add NOT NULL without default is to recreate the table.
 
+Bug Fixes:
+
+* #92,#93: since django-3.0 sqlmigrate (and migrate) does not work.
+* #37: fix Django `contenttype` migration that cause `ProgrammingError: cannot drop sortkey column
+  "name"` exception.
+* #64: fix Django `auth` migration that cause `NotSupportedError: column "content_type__app_label"
+  specified as distkey/sortkey is not in the table "auth_permission"` exception.
 2.1.0 (2021/09/23)
+
 ------------------
 
 General:
@@ -60,13 +60,13 @@ General:
 * #76 fix test failing on django-dev with py36,py37
 * #77 Mondernize setup.cfg and pyproject.toml
 
-Bug Fixes:
-
-* #80 uuid field doesn't work correctly with django 2.x and 3.x. Thanks to xavier-lr.
-
 Features:
 
 * #81 Add Django 3.2 support.
+
+Bug Fixes:
+
+* #80 uuid field doesn't work correctly with django 2.x and 3.x. Thanks to xavier-lr.
 
 2.0.1 (2021/03/07)
 ------------------
