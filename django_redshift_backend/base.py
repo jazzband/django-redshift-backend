@@ -47,8 +47,12 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     allows_group_by_selected_pks = False
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
-    can_rollback_ddl = False                  # django-redshift-backend #96
     supports_combined_alters = False          # since django-1.8
+
+    # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
+    # refs django-redshift-backend #96
+    # refs https://github.com/django/django/blob/3702819/django/db/backends/sqlite3/schema.py#L131-L144
+    can_rollback_ddl = False
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
