@@ -14,7 +14,7 @@ import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.db.backends.base.introspection import FieldInfo
+from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.db.backends.base.schema import _is_relevant_relation, _related_non_m2m_objects
 from django.db.backends.base.validation import BaseDatabaseValidation
 from django.db.backends.ddl_references import Statement
@@ -234,8 +234,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         # Add any unique_togethers (always deferred, as some fields might
         # be created afterwards, like geometry fields with some backends)
         for fields in model._meta.unique_together:
-            columns = [model._meta.get_field(field).column for field in fields]
-            self.deferred_sql.append(self._create_unique_sql(model, columns))
+            fields = [model._meta.get_field(field) for field in fields]
+            self.deferred_sql.append(self._create_unique_sql(model, fields))
 
         # Make the table
         sql = self.sql_create_table % {
@@ -517,7 +517,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             self._delete_primary_key(model, strict)
         # Added a unique?
         if self._unique_should_be_added(old_field, new_field):
-            self.execute(self._create_unique_sql(model, [new_field.column]))
+            self.execute(self._create_unique_sql(model, [new_field]))
         # Added an index? Add an index if db_index switched to True or a unique
         # constraint will no longer be used in lieu of an index. The following
         # lines from the truth table show all True cases; the rest are False:
@@ -768,7 +768,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             ))
             # 3. add UNIQUE, PKEY, FK again
             if unique_constraint:
-                actions.append((self._create_unique_sql(model, [new_field.column], unique_constraint), []))
+                actions.append((self._create_unique_sql(model, [new_field], unique_constraint), []))
             elif pk_constraint:
                 actions.append((self._create_primary_key_sql(model, new_field), []))
             elif fk_constraint:
@@ -870,6 +870,34 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 }
             )
             super().remove_field(model, field)
+
+    # backwards compatiblity for django
+    # refs: https://github.com/django/django/pull/14459/files
+    def _create_unique_sql(
+        self, model, fields, name=None, condition=None, deferrable=None,
+        include=None, opclasses=None, expressions=None,
+    ):
+        if django.VERSION >= (4,):
+            return super()._create_unique_sql(
+                model, fields, name=name, condition=condition, deferrable=deferrable,
+                include=include, opclasses=opclasses, expressions=expressions
+            )
+        elif django.VERSION >= (3,):  # dj32 support
+            columns = [
+                field.column if hasattr(field, 'column') else field
+                for field in fields
+            ]
+            return super()._create_unique_sql(
+                model, columns, name=name, condition=condition, deferrable=deferrable,
+                include=include, opclasses=opclasses,
+            )
+        else:  # dj32, dj22 support
+            columns = [
+                field.column if hasattr(field, 'column') else field
+                for field in fields
+            ]
+            return super()._create_unique_sql(
+                model, columns, name=name, condition=condition)
 
 
 redshift_data_types = {
@@ -1049,6 +1077,21 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             attnum: attname
             for _, attnum, attname in cursor.fetchall()
         }
+
+    # BASED FROM https://github.com/django/django/blob/3.2.12/django/db/backends/postgresql/introspection.py#L47-L58
+    # Django 4.0 drop old postgres support: https://github.com/django/django/commit/5371342
+    def get_table_list(self, cursor):
+        """Return a list of table and view names in the current database."""
+        cursor.execute("""
+            SELECT c.relname,
+            CASE WHEN c.relkind IN ('m', 'v') THEN 'v' ELSE 't' END
+            FROM pg_catalog.pg_class c
+            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
+                AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
+                AND pg_catalog.pg_table_is_visible(c.oid)
+        """)
+        return [TableInfo(*row) for row in cursor.fetchall() if row[0] not in self.ignored_tables]
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
