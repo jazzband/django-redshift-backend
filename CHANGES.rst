@@ -41,9 +41,9 @@ Bug Fixes:
 Features:
 
 * #82 Add Python-3.10 support.
-* #?? Add Django-4.0 support.
+* #98 Add Django-4.0 support.
 * #82 Drop Django-3.0 support.
-* #?? Drop Django-3.1 support.
+* #98 Drop Django-3.1 support.
 * #90,#13,#8: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
   Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
