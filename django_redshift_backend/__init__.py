@@ -12,3 +12,5 @@ except ImportError:  # py36, py37
     except DistributionNotFound:
         # package is not installed
         pass
+
+from django_redshift_backend.meta import DistKey, SortKey  # noqa

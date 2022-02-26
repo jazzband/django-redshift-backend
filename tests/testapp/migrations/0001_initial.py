@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import django_redshift_backend.distkey
+import django_redshift_backend
 
 
 class Migration(migrations.Migration):
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('fk', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testapp.testreferencedmodel')),
             ],
             options={
-                'ordering': ['created_at', '-id'],
+                'ordering': [django_redshift_backend.SortKey('created_at'), django_redshift_backend.SortKey('-id')],
             },
         ),
         migrations.CreateModel(
@@ -58,6 +58,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='testmodelwithmetakeys',
-            index=django_redshift_backend.distkey.DistKey(fields=['fk'], name='testapp_tes_fk_id_cd99f5_idx'),
+            index=django_redshift_backend.DistKey(fields=['fk'], name='testapp_tes_fk_id_cd99f5_idx'),
         ),
     ]
