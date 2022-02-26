@@ -11,7 +11,7 @@ General:
 
 Incompatible Changes:
 
-* #??: To specify SORTKEY for Redshift, you must use `django_redshift_backend.SortKey` for
+* #97 To specify SORTKEY for Redshift, you must use `django_redshift_backend.SortKey` for
   `Model.Meta.ordering` instead of bearer string.
 
   **IMPORTANT**:
@@ -19,14 +19,14 @@ Incompatible Changes:
   If you want to apply SortKey to your migration files, please comment out the ordering option once and run
   makemigrations, then comment in the ordering option and run makemigrations again.
 
-* #??: `django_redshift_backend.distkey.DistKey` is moved to `django_redshift_backend.DistKey`.
+* #97 `django_redshift_backend.distkey.DistKey` is moved to `django_redshift_backend.DistKey`.
   However old name is still supported for a compatibility.
 
-* #??: Now django-redshift-backend doesn't support `can_rollback_ddl`.
+* #97 Now django-redshift-backend doesn't support `can_rollback_ddl`.
   Originally, Redshift did not support column name/type(size) changes within a transaction.
   Please refer https://github.com/jazzband/django-redshift-backend/issues/96
 
-* #??: changed the behavior of implicit not null column addition.
+* #97 changed the behavior of implicit not null column addition.
   previously, adding a not null column was implicitly changed to allow null.
   now adding not null without default raises a programmingerror exception.
 
@@ -45,8 +45,8 @@ Features:
 * #90, #13: Support `manage.py inspectdb`, also support working with the django-sql-explorer package.
   Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
-* #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY, FOREIGN KEY.
-* #?? Support backward migration for DROP NOT NULL column wituout DEFAULT.
+* #97 Support VARCHAR size changing for UNIQUE, PRIMARY KEY, FOREIGN KEY.
+* #97 Support backward migration for DROP NOT NULL column wituout DEFAULT.
   One limitation is that the DEFAULT value is set to match the type. This is because the only way for
   Redshift to add NOT NULL without default is to recreate the table.
 
