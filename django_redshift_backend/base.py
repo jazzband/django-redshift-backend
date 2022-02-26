@@ -11,6 +11,7 @@ import uuid
 import logging
 
 import django
+from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.backends.base.introspection import FieldInfo
@@ -106,6 +107,31 @@ class DatabaseOperations(BasePGDatabaseOperations):
                 'DISTINCT ON fields is not supported by this database backend'
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
+
+
+def _get_type_default(field):
+    internal_type = field.get_internal_type()
+    if internal_type in ('CharField', 'SlugField'):
+        default = ''
+    elif internal_type == 'BinaryField':
+        default = b''
+    elif internal_type == 'FloatField':
+        default = 0.0
+    elif internal_type in (
+            'BigAutoField', 'IntegerField', 'BigIntegerField', 'PositiveBigIntegerField', 'PositiveIntegerField',
+            'PositiveSmallIntegerField', 'SmallAutoField', 'SmallIntegerField', 'DecimalField'):
+        default = 0
+    elif internal_type == 'BooleanField':
+        default = False
+    elif internal_type == 'DateField':
+        default = timezone.date()
+    elif internal_type == 'TimeField':
+        default = timezone.time()
+    elif internal_type == 'DateTimeField':
+        default = timezone.now()
+    else:
+        default = None
+    return default
 
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
@@ -574,25 +600,33 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         3. Drop old column
         4. Rename temporary column name to original column name
         """
-        new_default = self.effective_default(new_field)
-
         fragment = ('', [])
         actions = []
 
         # ## ALTER TABLE <table> ADD COLUMN 'tmp' <type> DEFAULT <value>
+        if not new_field.null and not new_field.has_default():
+            # Redshift can't add NOT NULL or DROP NOT NULL, then DEFAULT value is needed.
+            # Note that only backwards migration is in here.
+            default = _get_type_default(new_field)
+            if default is None:
+                raise ValueError(
+                    "django-redshift-backend doesn't know default for the type: {}".format(
+                        new_field.get_internal_type()
+                    ))
+            new_field.default = default
+
         definition, params = self.column_sql(model, new_field, include_default=True)
-        new_defaults = [new_default] if new_default is not None else []
         fragment = (
             self.sql_create_column % {
                 "table": self.quote_name(model._meta.db_table),
                 "column": self.quote_name(new_field.column + "_tmp"),
                 "definition": definition,
             },
-            new_defaults
+            params
         )
         # ## UPDATE <table> SET 'tmp' = <orig column>
         actions.append((
-            "UPDATE %(table)s SET %(new_column)s = %(old_column)s" % {
+            "UPDATE %(table)s SET %(new_column)s = %(old_column)s WHERE %(old_column)s IS NOT NULL" % {
                 "table": model._meta.db_table,
                 "new_column": self.quote_name(new_field.column + "_tmp"),
                 "old_column": self.quote_name(new_field.column),
@@ -734,7 +768,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             elif pk_constraint:
                 actions.append((self._create_primary_key_sql(model, new_field), []))
             elif fk_constraint:
-                actions.append((self._create_fk_sql(model, new_field, fk_constraint), []))  # FIXME: fk_constraint
+                actions.append((self._create_fk_sql(model, new_field, fk_constraint), []))
             fragment = actions.pop(0)
 
         # Type or default is changed?

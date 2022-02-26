@@ -46,6 +46,9 @@ Features:
   Thanks to Matt Fisher.
 * #63 Support changing a field from NOT NULL to NULL on migrate / sqlmigrate.
 * #?? Support VARCHAR size changing for UNIQUE, PRIMARY KEY, FOREIGN KEY.
+* #?? Support backward migration for DROP NOT NULL column wituout DEFAULT.
+  One limitation is that the DEFAULT value is set to match the type. This is because the only way for
+  Redshift to add NOT NULL without default is to recreate the table.
 
 2.1.0 (2021/09/23)
 ------------------

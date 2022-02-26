@@ -173,6 +173,36 @@ class MigrationTests(OperationTestBase):
             with self.collect_sql():
                 self.apply_operations('test', new_state, operations)
 
+    def test_add_notnull_without_default_on_backwards(self):
+        project_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AlterField(
+                model_name='Pony',
+                name='weight',
+                field=models.FloatField(null=True),
+            ),
+        ]
+        new_state = project_state.clone()
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" double precision NULL;''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight" WHERE "weight" IS NOT NULL;''',
+            '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
+        ], sqls)
+
+        with self.collect_sql() as sqls:
+            self.unapply_operations('test', project_state, operations)
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" double precision DEFAULT 0.0 NOT NULL;''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight" WHERE "weight" IS NOT NULL;''',
+            '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
+        ], sqls)
+
     def test_add_notnull_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -205,7 +235,7 @@ class MigrationTests(OperationTestBase):
 
         self.assertEqual([
             '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" varchar(10) DEFAULT '' NOT NULL;''',
-            '''UPDATE test_pony SET "weight_tmp" = "weight";''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight" WHERE "weight" IS NOT NULL;''',
             '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
@@ -231,7 +261,7 @@ class MigrationTests(OperationTestBase):
         self.assertEqual([
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''',
             '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) DEFAULT '' NOT NULL;''',
-            '''UPDATE test_pony SET "name_tmp" = "name";''',
+            '''UPDATE test_pony SET "name_tmp" = "name" WHERE "name" IS NOT NULL;''',
             '''ALTER TABLE test_pony DROP COLUMN "name" CASCADE;''',
             '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
@@ -283,7 +313,7 @@ class MigrationTests(OperationTestBase):
 
         self.assertEqual([
             '''ALTER TABLE "test_pony" ADD COLUMN "weight_tmp" double precision NULL;''',
-            '''UPDATE test_pony SET "weight_tmp" = "weight";''',
+            '''UPDATE test_pony SET "weight_tmp" = "weight" WHERE "weight" IS NOT NULL;''',
             '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
