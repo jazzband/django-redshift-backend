@@ -1,6 +1,17 @@
 CHANGES
 =======
 
+x.y.z (Unreleased)
+------------------
+
+General:
+
+Incompatible Changes:
+
+Features:
+
+Bug Fixes:
+
 3.0.0 (2022/02/27)
 ------------------
 
