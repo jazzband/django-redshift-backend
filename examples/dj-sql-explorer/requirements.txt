@@ -1,0 +1,4 @@
+Django<4
+django-environ==0.8.1
+django-sql-explorer
+-e ../..
