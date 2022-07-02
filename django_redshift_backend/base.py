@@ -44,7 +44,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     can_return_rows_from_bulk_insert = False  # new name since django-3.0
     has_select_for_update = False
     supports_column_check_constraints = False
-    can_distinct_on_fields = False
+    can_distinct_on_fields = True
     allows_group_by_selected_pks = False
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
@@ -57,6 +57,8 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
 
 
 class DatabaseOperations(BasePGDatabaseOperations):
+
+    compiler_module = "django_redshift_backend.compiler"
 
     def last_insert_id(self, cursor, table_name, pk_name):
         """
@@ -104,14 +106,20 @@ class DatabaseOperations(BasePGDatabaseOperations):
             value = uuid.UUID(value)
         return value
 
-    def distinct_sql(self, fields, *args):
+    def distinct_sql(self, fields, params, order_by=None):
         if fields:
-            # https://github.com/jazzband/django-redshift-backend/issues/14
-            # Redshift doesn't support DISTINCT ON
-            raise NotSupportedError(
-                'DISTINCT ON fields is not supported by this database backend'
-            )
-        return super(DatabaseOperations, self).distinct_sql(fields, *args)
+            distinct_on = ", ".join(fields)
+            result = f"ROW_NUMBER() OVER (PARTITION BY {distinct_on}"
+            if order_by:
+                ordering = []
+                for _, (o_sql, o_params, _) in order_by:
+                    ordering.append(o_sql)
+                    params.extend(o_params)
+                ordering = ", ".join(ordering)
+                result += f" ORDER BY {ordering}"
+            result += ") AS row_number,"
+            return [result], [params]
+        return ["DISTINCT"], []
 
 
 def _get_type_default(field):
