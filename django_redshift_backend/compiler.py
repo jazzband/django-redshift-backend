@@ -1,4 +1,5 @@
-from django.core.exceptions import EmptyResultSet
+import warnings
+
 from django.db import NotSupportedError
 from django.db.models.sql.compiler import (
     SQLAggregateCompiler,
@@ -8,6 +9,8 @@ from django.db.models.sql.compiler import (
     SQLUpdateCompiler,
 )
 from django.db.transaction import TransactionManagementError
+from django.db.utils import NotSupportedError
+from django.utils.deprecation import RemovedInDjango31Warning
 
 
 class SQLCompiler(SQLCompiler):
@@ -30,10 +33,10 @@ class SQLCompiler(SQLCompiler):
             features = self.connection.features
             if combinator:
                 if not getattr(
-                    features, "supports_select_{}".format(combinator)
+                    features, 'supports_select_{}'.format(combinator)
                 ):
                     raise NotSupportedError(
-                        "{} is not supported on this database backend.".format(
+                        '{} is not supported on this database backend.'.format(
                             combinator
                         )
                     )
@@ -45,23 +48,17 @@ class SQLCompiler(SQLCompiler):
                 # This must come after 'select', 'ordering', and 'distinct'
                 # (see docstring of get_from_clause() for details).
                 from_, f_params = self.get_from_clause()
-                try:
-                    where, w_params = (
-                        self.compile(self.where)
-                        if self.where is not None
-                        else ("", [])
-                    )
-                except EmptyResultSet:
-                    if self.elide_empty:
-                        raise
-                    # Use a predicate that's always False.
-                    where, w_params = "0 = 1", []
+                where, w_params = (
+                    self.compile(self.where)
+                    if self.where is not None
+                    else ("", [])
+                )
                 having, h_params = (
                     self.compile(self.having)
                     if self.having is not None
                     else ("", [])
                 )
-                result = ["SELECT"]
+                result = ['SELECT']
                 params = []
 
                 if self.query.distinct:
@@ -80,38 +77,26 @@ class SQLCompiler(SQLCompiler):
                 col_idx = 1
                 for _, (s_sql, s_params), alias in self.select + extra_select:
                     if alias:
-                        s_sql = "%s AS %s" % (
+                        s_sql = '%s AS %s' % (
                             s_sql,
                             self.connection.ops.quote_name(alias),
                         )
                     elif with_col_aliases:
-                        s_sql = "%s AS %s" % (
-                            s_sql,
-                            self.connection.ops.quote_name("col%d" % col_idx),
-                        )
+                        s_sql = '%s AS %s' % (s_sql, 'Col%d' % col_idx)
                         col_idx += 1
                     params.extend(s_params)
                     out_cols.append(s_sql)
 
-                result += [", ".join(out_cols)]
-                if from_:
-                    result += ["FROM", *from_]
-                elif self.connection.features.bare_select_suffix:
-                    result += [self.connection.features.bare_select_suffix]
+                result += [', '.join(out_cols), 'FROM', *from_]
                 params.extend(f_params)
 
                 if (
                     self.query.select_for_update
                     and features.has_select_for_update
                 ):
-                    if (
-                        self.connection.get_autocommit()
-                        # Don't raise an exception when database doesn't
-                        # support transactions, as it's a noop.
-                        and features.supports_transactions
-                    ):
+                    if self.connection.get_autocommit():
                         raise TransactionManagementError(
-                            "select_for_update cannot be used outside of a transaction."
+                            'select_for_update cannot be used outside of a transaction.'
                         )
 
                     if (
@@ -119,48 +104,41 @@ class SQLCompiler(SQLCompiler):
                         and not features.supports_select_for_update_with_limit
                     ):
                         raise NotSupportedError(
-                            "LIMIT/OFFSET is not supported with "
-                            "select_for_update on this database backend."
+                            'LIMIT/OFFSET is not supported with '
+                            'select_for_update on this database backend.'
                         )
                     nowait = self.query.select_for_update_nowait
                     skip_locked = self.query.select_for_update_skip_locked
                     of = self.query.select_for_update_of
-                    no_key = self.query.select_for_no_key_update
-                    # If it's a NOWAIT/SKIP LOCKED/OF/NO KEY query but the
-                    # backend doesn't support it, raise NotSupportedError to
-                    # prevent a possible deadlock.
+                    # If it's a NOWAIT/SKIP LOCKED/OF query but the backend
+                    # doesn't support it, raise NotSupportedError to prevent a
+                    # possible deadlock.
                     if nowait and not features.has_select_for_update_nowait:
                         raise NotSupportedError(
-                            "NOWAIT is not supported on this database backend."
+                            'NOWAIT is not supported on this database backend.'
                         )
                     elif (
                         skip_locked
                         and not features.has_select_for_update_skip_locked
                     ):
                         raise NotSupportedError(
-                            "SKIP LOCKED is not supported on this database backend."
+                            'SKIP LOCKED is not supported on this database backend.'
                         )
                     elif of and not features.has_select_for_update_of:
                         raise NotSupportedError(
-                            "FOR UPDATE OF is not supported on this database backend."
-                        )
-                    elif no_key and not features.has_select_for_no_key_update:
-                        raise NotSupportedError(
-                            "FOR NO KEY UPDATE is not supported on this "
-                            "database backend."
+                            'FOR UPDATE OF is not supported on this database backend.'
                         )
                     for_update_part = self.connection.ops.for_update_sql(
                         nowait=nowait,
                         skip_locked=skip_locked,
                         of=self.get_select_for_update_of_arguments(),
-                        no_key=no_key,
                     )
 
                 if for_update_part and features.for_update_after_from:
                     result.append(for_update_part)
 
                 if where:
-                    result.append("WHERE %s" % where)
+                    result.append('WHERE %s' % where)
                     params.extend(w_params)
 
                 grouping = []
@@ -170,24 +148,36 @@ class SQLCompiler(SQLCompiler):
                 if grouping:
                     if distinct_fields:
                         raise NotImplementedError(
-                            "annotate() + distinct(fields) is not implemented."
+                            'annotate() + distinct(fields) is not implemented.'
                         )
                     order_by = (
                         order_by or self.connection.ops.force_no_ordering()
                     )
-                    result.append("GROUP BY %s" % ", ".join(grouping))
+                    result.append('GROUP BY %s' % ', '.join(grouping))
                     if self._meta_ordering:
-                        order_by = None
+                        # When the deprecation ends, replace with:
+                        # order_by = None
+                        warnings.warn(
+                            "%s QuerySet won't use Meta.ordering in Django 3.1. "
+                            "Add .order_by(%s) to retain the current query."
+                            % (
+                                self.query.model.__name__,
+                                ', '.join(
+                                    repr(f) for f in self._meta_ordering
+                                ),
+                            ),
+                            RemovedInDjango31Warning,
+                            stacklevel=4,
+                        )
                 if having:
-                    result.append("HAVING %s" % having)
+                    result.append('HAVING %s' % having)
                     params.extend(h_params)
 
-            if self.query.explain_info:
+            if self.query.explain_query:
                 result.insert(
                     0,
                     self.connection.ops.explain_query_prefix(
-                        self.query.explain_info.format,
-                        **self.query.explain_info.options,
+                        self.query.explain_format, **self.query.explain_options
                     ),
                 )
 
@@ -196,7 +186,7 @@ class SQLCompiler(SQLCompiler):
                 for _, (o_sql, o_params, _) in order_by:
                     ordering.append(o_sql)
                     params.extend(o_params)
-                result.append("ORDER BY %s" % ", ".join(ordering))
+                result.append('ORDER BY %s' % ', '.join(ordering))
 
             if with_limit_offset:
                 result.append(
@@ -226,30 +216,30 @@ class SQLCompiler(SQLCompiler):
                     self.select, start=1
                 ):
                     if not alias and with_col_aliases:
-                        alias = "col%d" % index
+                        alias = 'col%d' % index
                     if alias:
                         sub_selects.append(
                             "%s.%s"
                             % (
-                                self.connection.ops.quote_name("subquery"),
+                                self.connection.ops.quote_name('subquery'),
                                 self.connection.ops.quote_name(alias),
                             )
                         )
                     else:
                         select_clone = select.relabeled_clone(
-                            {select.alias: "subquery"}
+                            {select.alias: 'subquery'}
                         )
                         subselect, subparams = select_clone.as_sql(
                             self, self.connection
                         )
                         sub_selects.append(subselect)
                         sub_params.extend(subparams)
-                return "SELECT %s FROM (%s) subquery" % (
-                    ", ".join(sub_selects),
-                    " ".join(result),
+                return 'SELECT %s FROM (%s) subquery' % (
+                    ', '.join(sub_selects),
+                    ' '.join(result),
                 ), tuple(sub_params + params)
 
-            return " ".join(result), tuple(params)
+            return ' '.join(result), tuple(params)
         finally:
             # Finally do cleanup - get rid of the joins we created above.
             self.query.reset_refcounts(refcounts_before)
