@@ -112,13 +112,12 @@ class DatabaseOperations(BasePGDatabaseOperations):
             result = f"ROW_NUMBER() OVER (PARTITION BY {distinct_on}"
             if order_by:
                 ordering = []
-                for _, (o_sql, o_params, _) in order_by:
+                for _, (o_sql, _, _) in order_by:
                     ordering.append(o_sql)
-                    params.extend(o_params)
                 ordering = ", ".join(ordering)
                 result += f" ORDER BY {ordering}"
             result += ") AS row_number,"
-            return [result], [params]
+            return [result], []
         return ["DISTINCT"], []
 
 
