@@ -81,18 +81,32 @@ expected_dml_distinct = norm_sql(
 ''')
 
 expected_dml_distinct_fields = norm_sql(
-    u'''SELECT * FROM
-    (SELECT ROW_NUMBER()
-    OVER (PARTITION BY "testapp_testmodel"."uuid" ORDER BY "testapp_testmodel"."uuid" ASC, "testapp_testmodel"."ctime" DESC) AS row_number,
-    "testapp_testmodel"."id",
-    "testapp_testmodel"."ctime",
-    "testapp_testmodel"."text",
-    "testapp_testmodel"."uuid"
-    FROM "testapp_testmodel"
-    WHERE ("testapp_testmodel"."ctime" <= %s AND "testapp_testmodel"."text" = %s)
-    ORDER BY "testapp_testmodel"."uuid" ASC,
-    "testapp_testmodel"."ctime" DESC)
-    where row_number = 1
+    u'''
+    SELECT
+        "tb"."id",
+        "tb"."ctime",
+        "tb"."text",
+        "tb"."uuid"
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (
+                PARTITION BY
+                    "testapp_testmodel"."uuid"
+                ORDER BY
+                    "testapp_testmodel"."uuid" ASC,
+                    "testapp_testmodel"."ctime" DESC
+            ) AS row_number,
+            "testapp_testmodel"."id",
+            "testapp_testmodel"."ctime",
+            "testapp_testmodel"."text",
+            "testapp_testmodel"."uuid"
+        FROM "testapp_testmodel"
+        WHERE ("testapp_testmodel"."ctime" <= %s AND "testapp_testmodel"."text" = %s)
+        ORDER BY
+            "testapp_testmodel"."uuid" ASC,
+            "testapp_testmodel"."ctime" DESC
+    ) AS "tb"
+    WHERE "tb"."row_number" = 1
 ''')
 
 class ModelTest(unittest.TestCase):

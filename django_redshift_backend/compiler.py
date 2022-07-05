@@ -200,7 +200,8 @@ class SQLCompiler(SQLCompiler):
 
             if self.query.distinct_fields:
                 pre_result = " ".join(result)
-                sql = f"SELECT * FROM ({pre_result}) where row_number = 1"
+                tb_out_cols = [f'"tb".{col.split(".")[1]}' for col in out_cols]
+                sql = f'SELECT {", ".join(tb_out_cols)} FROM ({pre_result}) AS "tb" WHERE "tb"."row_number" = 1'
                 return sql, tuple(params)
 
             if self.query.subquery and extra_select:
