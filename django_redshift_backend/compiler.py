@@ -3,7 +3,7 @@ import warnings
 from django.db import NotSupportedError
 from django.db.models.sql.compiler import (
     SQLAggregateCompiler,
-    SQLCompiler,
+    SQLCompiler as BaseSQLCompiler,
     SQLDeleteCompiler,
     SQLInsertCompiler,
     SQLUpdateCompiler,
@@ -13,7 +13,10 @@ from django.db.utils import NotSupportedError
 from django.utils.deprecation import RemovedInDjango31Warning
 
 
-class SQLCompiler(SQLCompiler):
+FORCE = object()
+
+
+class SQLCompiler(BaseSQLCompiler):
     def as_sql(self, with_limits=True, with_col_aliases=False):
         """
         Create the SQL for this query. Return the SQL string and list of
@@ -201,6 +204,8 @@ class SQLCompiler(SQLCompiler):
             if self.query.distinct_fields:
                 pre_result = " ".join(result)
                 tb_out_cols = [f'"tb".{col.split(".")[1]}' for col in out_cols]
+                if with_col_aliases:
+                    tb_out_cols = [f'"tb"."Col{idx + 1}"' for idx in range(len(tb_out_cols))]
                 sql = f'SELECT {", ".join(tb_out_cols)} FROM ({pre_result}) AS "tb" WHERE "tb"."row_number" = 1'
                 return sql, tuple(params)
 
@@ -244,3 +249,23 @@ class SQLCompiler(SQLCompiler):
         finally:
             # Finally do cleanup - get rid of the joins we created above.
             self.query.reset_refcounts(refcounts_before)
+
+
+class SQLAggregateCompiler(SQLCompiler):
+    def as_sql(self):
+        """
+        Create the SQL for this query. Return the SQL string and list of
+        parameters.
+        """
+        sql, params = [], []
+        for annotation in self.query.annotation_select.values():
+            ann_sql, ann_params = self.compile(annotation, select_format=FORCE)
+            sql.append(ann_sql)
+            params.extend(ann_params)
+        self.col_count = len(self.query.annotation_select)
+        sql = ', '.join(sql)
+        params = tuple(params)
+
+        sql = 'SELECT %s FROM (%s) subquery' % (sql, self.query.subquery)
+        params = params + self.query.sub_params
+        return sql, params
