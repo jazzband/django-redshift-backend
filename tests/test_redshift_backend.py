@@ -3,7 +3,6 @@
 import os
 import unittest
 
-import django
 from django.db import connections
 from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
@@ -158,16 +157,9 @@ class MigrationTest(unittest.TestCase):
                         reason='to run, TEST_WITH_POSTGRES=1 tox')
     def test_sqlmigrate(self):
         from django.db import connection
-
-        if django.VERSION < (3, 0):  # for dj22
-            from django.db.migrations.executor import MigrationExecutor
-            executor = MigrationExecutor(connection)
-            loader = executor.loader
-            collect_sql = executor.collect_sql
-        else:
-            from django.db.migrations.loader import MigrationLoader
-            loader = MigrationLoader(connection)
-            collect_sql = loader.collect_sql
+        from django.db.migrations.loader import MigrationLoader
+        loader = MigrationLoader(connection)
+        collect_sql = loader.collect_sql
 
         app_label, migration_name = 'testapp', '0001'
         migration = loader.get_migration_by_prefix(app_label, migration_name)
