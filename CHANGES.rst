@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-x.y.z (Unreleased)
+4.0.0 (Unreleased)
 ------------------
 
 General:
@@ -9,6 +9,9 @@ General:
 Incompatible Changes:
 
 Features:
+
+* #83 Drop Python-3.6 support.
+* #83 Drop Django-2.2 support.
 
 Bug Fixes:
 
