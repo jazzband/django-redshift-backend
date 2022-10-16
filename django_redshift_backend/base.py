@@ -144,10 +144,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     sql_create_table = "CREATE TABLE %(table)s (%(definition)s) %(options)s"
     sql_delete_fk = "ALTER TABLE %(table)s DROP CONSTRAINT %(name)s"
 
-    if django.VERSION < (3,):
-        # to remove "USING %(column)s::%(type)s"
-        sql_alter_column_type = "ALTER COLUMN %(column)s TYPE %(type)s"
-
     @property
     def multiply_varchar_length(self):
         return int(getattr(settings, "REDSHIFT_VARCHAR_LENGTH_MULTIPLIER", 1))
@@ -878,7 +874,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
         self, model, fields, name=None, condition=None, deferrable=None,
         include=None, opclasses=None, expressions=None,
     ):
-        if django.VERSION >= (4,):
+        if django.VERSION >= (4,):  # dj40 support
             return super()._create_unique_sql(
                 model, fields, name=name, condition=condition, deferrable=deferrable,
                 include=include, opclasses=opclasses, expressions=expressions
@@ -892,13 +888,8 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 model, columns, name=name, condition=condition, deferrable=deferrable,
                 include=include, opclasses=opclasses,
             )
-        else:  # dj32, dj22 support
-            columns = [
-                field.column if hasattr(field, 'column') else field
-                for field in fields
-            ]
-            return super()._create_unique_sql(
-                model, columns, name=name, condition=condition)
+        else:  # dj22 or earlier are not supported
+            raise NotImplementedError
 
 
 redshift_data_types = {
@@ -947,15 +938,13 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
         # field_map = {line[0]: line[1:] for line in cursor.fetchall()}
         field_map = {}
         for column_name, is_nullable, column_default in cursor.fetchall():
-            _field_map = {
+            field_map[column_name] = {
                 'null_ok': is_nullable,
                 'default': column_default,
-            }
-            if django.VERSION >= (3, 2):
                 # Redshift doesn't support user-defined collation
                 # https://docs.aws.amazon.com/redshift/latest/dg/c_collation_sequences.html
-                _field_map['collation'] = None
-            field_map[column_name] = _field_map
+                'collation': None,
+            }
         cursor.execute(
             "SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name)
         )

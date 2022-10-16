@@ -5,7 +5,7 @@ try:  # py38 or later
     except PackageNotFoundError:
         # package is not installed
         pass
-except ImportError:  # py36, py37
+except ImportError:  # py37
     from pkg_resources import get_distribution, DistributionNotFound
     try:
         __version__ = get_distribution(__name__).version
