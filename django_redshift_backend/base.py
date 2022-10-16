@@ -741,7 +741,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             # 0. Find the unique constraint for this field
 
             unique_constraint = pk_constraint = fk_constraint = None
-            if old_field.unique and new_field.unique and not(old_field.primary_key or new_field.primary_key):
+            if old_field.unique and new_field.unique and not (old_field.primary_key or new_field.primary_key):
                 unique_constraint = self._get_constraint(model, old_field, unique=True, primary_key=False)
             elif old_field.primary_key and new_field.primary_key:
                 pk_constraint = self._get_constraint(model, old_field, primary_key=True)
