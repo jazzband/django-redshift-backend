@@ -129,9 +129,9 @@ def _get_type_default(field):
     elif internal_type == 'BooleanField':
         default = False
     elif internal_type == 'DateField':
-        default = timezone.date()
+        default = timezone.now().date()
     elif internal_type == 'TimeField':
-        default = timezone.time()
+        default = timezone.now().time()
     elif internal_type == 'DateTimeField':
         default = timezone.now()
     else:
