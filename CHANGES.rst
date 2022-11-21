@@ -157,7 +157,7 @@ Development:
 * #35: Drop support for Django 1.8, 1.9 and 1.10.
 * #40: Support Django 2.0.
 * #42: Support DISTKEY. Thanks to Benjy Weinberger.
-* Documentation: http://django-redshift-backend.rtfd.io/
+* Documentation: https://django-redshift-backend.rtfd.io/
 * Change LICENSE from 'BSD License' to 'Apache Software License'
 
 0.8.1 (2018-06-19)
@@ -196,7 +196,7 @@ Bug Fixes:
 
 Documentation:
 
-* Add documentation: http://django-redshift-backend.rtfd.io/
+* Add documentation: https://django-redshift-backend.rtfd.io/
 
 
 0.7 (2017-06-08)

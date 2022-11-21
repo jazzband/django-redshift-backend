@@ -10,11 +10,11 @@ This is a `Amazon Redshift`_ database backend for Django_.
 
 .. image:: https://img.shields.io/readthedocs/django-redshift-backend/master.svg
    :alt: Read the Docs (master)
-   :target: http://django-redshift-backend.rtfd.io/
+   :target: https://django-redshift-backend.rtfd.io/
 
 .. image:: https://img.shields.io/pypi/v/django-redshift-backend.svg
    :alt: PyPI
-   :target: http://pypi.org/p/django-redshift-backend
+   :target: https://pypi.org/project/django-redshift-backend/
 
 .. image:: https://img.shields.io/pypi/pyversions/django-redshift-backend.svg
    :alt: PyPI - Python Version

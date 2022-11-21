@@ -64,8 +64,8 @@ class DatabaseOperations(BasePGDatabaseOperations):
         retrieve MAX(pk) after insertion as a workaround.
 
         refs:
-        * http://stackoverflow.com/q/19428860
-        * http://stackoverflow.com/q/25638539
+        * https://stackoverflow.com/q/19428860
+        * https://stackoverflow.com/q/25638539
 
         How about ``return cursor.lastrowid`` that is implemented in
         django.db.backends.base.operations? Unfortunately, it doesn't
