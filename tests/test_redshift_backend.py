@@ -6,6 +6,7 @@ import unittest
 from django.db import connections
 from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
+from django.utils.timezone import now
 import pytest
 
 
@@ -78,6 +79,34 @@ expected_dml_distinct = norm_sql(
     FROM "testapp_testmodel"
 ''')
 
+expected_dml_distinct_fields = norm_sql(
+    u'''
+    SELECT
+        "tb"."id",
+        "tb"."ctime",
+        "tb"."text",
+        "tb"."uuid"
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (
+                PARTITION BY
+                    "testapp_testmodel"."uuid"
+                ORDER BY
+                    "testapp_testmodel"."uuid" ASC,
+                    "testapp_testmodel"."ctime" DESC
+            ) AS row_number,
+            "testapp_testmodel"."id",
+            "testapp_testmodel"."ctime",
+            "testapp_testmodel"."text",
+            "testapp_testmodel"."uuid"
+        FROM "testapp_testmodel"
+        WHERE ("testapp_testmodel"."ctime" <= %s AND "testapp_testmodel"."text" = %s)
+        ORDER BY
+            "testapp_testmodel"."uuid" ASC,
+            "testapp_testmodel"."ctime" DESC
+    ) AS "tb"
+    WHERE "tb"."row_number" = 1
+''')
 
 class ModelTest(unittest.TestCase):
 
@@ -129,10 +158,18 @@ class ModelTest(unittest.TestCase):
 
     def test_distinct_with_fields(self):
         from testapp.models import TestModel
-        query = TestModel.objects.distinct('text').query
+        query = (
+            TestModel.objects.filter(
+                text='test',
+                ctime__lte=now()
+            )
+            .order_by('uuid', '-ctime')
+            .distinct('uuid')
+            .query
+        )
         compiler = query.get_compiler(using='default')
-        with self.assertRaises(NotSupportedError):
-            compiler.as_sql()
+        sql = norm_sql(compiler.as_sql()[0])
+        self.assertEqual(sql, expected_dml_distinct_fields)
 
 
 class MigrationTest(unittest.TestCase):
