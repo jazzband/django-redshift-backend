@@ -45,8 +45,8 @@ Amazon Redshift doesn't support RETURNING, so ``last_insert_id`` method retrieve
 
 refs:
 
-* http://stackoverflow.com/q/19428860
-* http://stackoverflow.com/q/25638539
+* https://stackoverflow.com/q/19428860
+* https://stackoverflow.com/q/25638539
 
 In some case, MAX(pk) workaround does not work correctly.
 Bulk insertion makes non-contiguous IDs like: 1, 4, 7, 10, ...
@@ -103,7 +103,7 @@ meta with the custom sortkey type `django_redshift_backend.SortKey` as follow::
 
 `SortKey` in `ordering` are also valid as ordering in Django.
 
-N.B.: there is no validation of this option, instead we let Redshift validate it for you. Be sure to refer to the `documentation <http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_examples.html>`_.
+N.B.: there is no validation of this option, instead we let Redshift validate it for you. Be sure to refer to the `documentation <https://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_examples.html>`_.
 
 Using distkey
 -------------

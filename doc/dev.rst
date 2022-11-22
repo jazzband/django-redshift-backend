@@ -81,5 +81,5 @@ Here is a release procefure for releasing.
 Updated documentation
 ---------------------
 
-Sphinx documentation under ``doc/`` directory on the master branch will be automatically uploaded into ReadTheDocs: http://django-redshift-backend.rtfd.io/.
+Sphinx documentation under ``doc/`` directory on the master branch will be automatically uploaded into ReadTheDocs: https://django-redshift-backend.rtfd.io/.
 
