@@ -1083,9 +1083,22 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
         """)
         return [TableInfo(*row) for row in cursor.fetchall() if row[0] not in self.ignored_tables]
 
+    def get_field_type(self, data_type, description):
+        # instead of calling a parent method, doing directly what grapndparent class does.
+        field_type = self.data_types_reverse[data_type]
+        if description.default and "nextval" in description.default:
+            if field_type == "IntegerField":
+                return "AutoField"
+            elif field_type == "BigIntegerField":
+                return "BigAutoField"
+            elif field_type == "SmallIntegerField":
+                return "SmallAutoField"
+        return field_type
+
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = 'redshift'
+    display_name = "AWS Redshift"
 
     SchemaEditorClass = DatabaseSchemaEditor
 
