@@ -12,3 +12,4 @@ doc/_build/
 coverage.xml
 **/.env
 examples/**/migrations/*
+.idea/
