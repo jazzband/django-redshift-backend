@@ -49,6 +49,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
     supports_combined_alters = False          # since django-1.8
+    supports_ignore_conflicts = False
 
     # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
     # refs django-redshift-backend #96
@@ -112,6 +113,10 @@ class DatabaseOperations(BasePGDatabaseOperations):
                 'DISTINCT ON fields is not supported by this database backend'
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
+
+    def ignore_conflicts_suffix_sql(self, ignore_conflicts=None):
+        return ''
+
 
 
 def _get_type_default(field):
