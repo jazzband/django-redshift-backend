@@ -12,9 +12,10 @@ class DistKey(Index):
       class Meta:
           indexes = [DistKey(fields=['customer_id'])]
     """
+
     def deconstruct(self):
         path, expressions, kwargs = super().deconstruct()
-        path = path.replace('django_redshift_backend.meta', 'django_redshift_backend')
+        path = path.replace("django_redshift_backend.meta", "django_redshift_backend")
         return (path, expressions, kwargs)
 
 
@@ -31,12 +32,13 @@ class SortKey(str):
       class Meta:
           ordering = [SortKey('created_at'), SortKey('-id')]
     """
+
     def __hash__(self):
         return hash(str(self))
 
     def deconstruct(self):
-        path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
-        path = path.replace('django_redshift_backend.meta', 'django_redshift_backend')
+        path = "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
+        path = path.replace("django_redshift_backend.meta", "django_redshift_backend")
         return (path, [str(self)], {})
 
     def __eq__(self, other):
