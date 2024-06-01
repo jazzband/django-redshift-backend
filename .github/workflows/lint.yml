@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         linter:
-          - flake8
+          - lint
           - check
 
     steps:
