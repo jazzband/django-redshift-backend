@@ -1,5 +1,5 @@
 repos:
-- "https://github.com/jazzband/django-redshift-backend"
+- repo: "https://github.com/jazzband/django-redshift-backend"
 ci:
   autofix_commit_msg: |
       [pre-commit.ci] auto fixes from pre-commit.com hooks
