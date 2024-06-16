@@ -1,4 +1,4 @@
 # setup
 
-pip install -U pip setuptools wheel
-pip install -r dev-requires.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv pip install --system -r dev-requires.txt

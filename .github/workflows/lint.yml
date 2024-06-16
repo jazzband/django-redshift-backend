@@ -22,7 +22,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -U pip
-          python -m pip install -U tox
+          python -m pip install -U tox-uv
 
       - run: tox -e ${{ matrix.linter }}
