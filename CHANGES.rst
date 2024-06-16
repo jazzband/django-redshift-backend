@@ -11,7 +11,7 @@ Incompatible Changes:
 Features:
 
 * #83 Drop Python-3.6 support.
-* Drop Python-3.7 support.
+* #127 Drop Python-3.7 support.
 * #83 Drop Django-2.2 support.
 
 Bug Fixes:
