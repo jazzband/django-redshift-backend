@@ -1,0 +1,17 @@
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+       # Name for the group, which will be used in PR titles and branch names
+       all-github-actions:
+          # Group all updates together
+          patterns:
+            - "*"
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: "monthly"
