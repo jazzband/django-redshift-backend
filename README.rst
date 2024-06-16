@@ -32,10 +32,6 @@ This is a `Amazon Redshift`_ database backend for Django_.
    :target: https://github.com/jazzband/django-redshift-backend/actions
    :alt: GitHub Actions
 
-.. image:: https://codecov.io/gh/jazzband/django-redshift-backend/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/jazzband/django-redshift-backend
-   :alt: Coverage
-
 .. image:: https://img.shields.io/github/stars/jazzband/django-redshift-backend.svg?style=social&label=Stars
    :alt: GitHub stars
    :target: https://github.com/jazzband/django-redshift-backend
