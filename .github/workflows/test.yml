@@ -58,8 +58,3 @@ jobs:
       env:
         DJANGO: ${{ matrix.django-version }}
         TEST_WITH_POSTGRES: 1
-
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4
-      with:
-        name: Python ${{ matrix.python-version }}
