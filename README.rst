@@ -71,7 +71,3 @@ LICENSE
 =======
 Apache Software License
 
-
-.. CHANGES.rst will be concatenated here by setup.py
-
-
