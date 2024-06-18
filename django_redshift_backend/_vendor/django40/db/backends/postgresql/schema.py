@@ -1,8 +1,8 @@
 import psycopg2
 
-from django.db.backends.base.schema import BaseDatabaseSchemaEditor
-from django.db.backends.ddl_references import IndexColumns
-from django.db.backends.utils import strip_quotes
+from django_redshift_backend._vendor.django40.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django_redshift_backend._vendor.django40.db.backends.ddl_references import IndexColumns
+from django_redshift_backend._vendor.django40.db.backends.utils import strip_quotes
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):

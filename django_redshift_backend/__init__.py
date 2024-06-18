@@ -1,4 +1,4 @@
-from django_redshift_backend.meta import DistKey, SortKey  # noqa
+from .meta import DistKey, SortKey  # noqa
 
 # py38 or later
 from importlib.metadata import version, PackageNotFoundError
