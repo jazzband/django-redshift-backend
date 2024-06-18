@@ -4,7 +4,7 @@ from django_redshift_backend.meta import DistKey, SortKey  # noqa
 from importlib.metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("package-name")
+    __version__ = version("django-redshift-backend")
 except PackageNotFoundError:
     # package is not installed
     pass
