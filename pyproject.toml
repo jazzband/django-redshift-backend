@@ -57,3 +57,6 @@ include-package-data = true
 # this empty section means: use_scm_version=True
 version_scheme = "guess-next-dev"
 local_scheme = "no-local-version"
+
+[tool.ruff]
+exclude = ["django_redshift_backend/_vendor"]
