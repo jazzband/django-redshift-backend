@@ -33,6 +33,7 @@ classifiers = [
 ]
 dependencies = [
     "django",
+    "backports.zoneinfo;python_version<'3.9'",
 ]
 
 [project.optional-dependencies]
