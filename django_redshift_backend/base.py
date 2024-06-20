@@ -1060,7 +1060,7 @@ redshift_data_types = {
     "AutoField": "integer",
     "BigAutoField": "bigint",
     "TextField": "varchar(max)",  # text must be varchar(max)
-    "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
+    "UUIDField": "varchar(36)",  # redshift doesn't support uuid fields
 }
 
 
