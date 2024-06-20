@@ -891,7 +891,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                         % {
                             "column": self.quote_name(new_field.column),
                             "type": new_type,
-                            "collation": ""
+                            "collation": "",
                         },
                     },
                     [],
