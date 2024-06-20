@@ -25,7 +25,7 @@ expected_ddl_normal = norm_sql(
     "id" integer identity(1, 1) NOT NULL PRIMARY KEY,
     "ctime" timestamp with time zone NOT NULL,
     "text" varchar(max) NOT NULL,
-    "uuid" varchar(32) NOT NULL
+    "uuid" varchar(36) NOT NULL
 )
 ;''')
 
