@@ -16,6 +16,8 @@ Features:
 
 Bug Fixes:
 
+* #134 inspectdb should suppress output 'id = AutoField(primary_key=True)'
+
 3.0.0 (2022/02/27)
 ------------------
 

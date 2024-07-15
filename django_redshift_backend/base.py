@@ -841,7 +841,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # Size is changed
         if (
-            type(old_field) == type(new_field)
+            type(old_field) is type(new_field)
             and old_max_length is not None
             and new_max_length is not None
             and old_max_length != new_max_length
@@ -1069,6 +1069,19 @@ class DatabaseCreation(BasePGDatabaseCreation):
 
 
 class DatabaseIntrospection(BasePGDatabaseIntrospection):
+    # to avoid output 'id = meta.AutoField(primary_key=True)',
+    # return 'AutoField' for 'identity'.
+    def get_field_type(self, data_type, description):
+        field_type = super().get_field_type(data_type, description)
+        if description.default and "identity" in description.default:
+            if field_type == "IntegerField":
+                return "AutoField"
+            elif field_type == "BigIntegerField":
+                return "BigAutoField"
+            elif field_type == "SmallIntegerField":
+                return "SmallAutoField"
+        return field_type
+
     def get_table_description(self, cursor, table_name):
         """
         Return a description of the table with the DB-API cursor.description

@@ -41,6 +41,12 @@ To test the database migration as well, start postgres and test it as follows::
    $ docker-compose up -d
    $ TEST_WITH_POSTGRES=1 tox
 
+To test migrations with Redshift, do it as follows:
+
+1. Create your redshift cruster on AWS
+2. Get a redshift endpoint URI
+3. run tox as: `TEST_WITH_REDSHIFT=redshift://user:password@<cluster>.<slug>.<region>.redshift.amazonaws.com:5439/<database>?DISABLE_SERVER_SIDE_CURSORS=True tox`
+
 CI (Continuous Integration)
 ----------------------------
 

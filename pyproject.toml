@@ -32,7 +32,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "django",
+    "django<4.2",
 ]
 
 [project.optional-dependencies]

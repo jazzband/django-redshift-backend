@@ -1,4 +1,3 @@
-import os
 import contextlib
 from unittest import mock
 
@@ -6,14 +5,11 @@ from django.db import migrations, models
 from django.db.migrations.state import ProjectState
 import pytest
 
-from django_redshift_backend.base import BasePGDatabaseWrapper
 from test_base import OperationTestBase
+from conftest import skipif_no_database, postgres_fixture
 
 
-@pytest.mark.skipif(not os.environ.get('TEST_WITH_POSTGRES'),
-                    reason='to run, TEST_WITH_POSTGRES=1 tox')
-@mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
-@mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+@skipif_no_database
 class MigrationTests(OperationTestBase):
     available_apps = ["testapp"]
     databases = {'default'}
@@ -40,6 +36,7 @@ class MigrationTests(OperationTestBase):
 
         print('\n'.join(collected_sql))
 
+    @postgres_fixture()
     def test_alter_size(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -69,6 +66,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_size_for_unique(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -94,6 +92,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_key" UNIQUE ("name");'''
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_size_for_pk(self):
         setup_operations = [migrations.CreateModel(
             'Pony',
@@ -120,6 +119,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_2c070d2a_pk" PRIMARY KEY ("name");''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_size_for_fk(self):
         setup_operations = [
             migrations.CreateModel(
@@ -159,6 +159,7 @@ class MigrationTests(OperationTestBase):
                 ''' FOREIGN KEY ("pony_id") REFERENCES "test_pony" ("id");'''),
         ], sqls)
 
+    @postgres_fixture()
     def test_add_notnull_without_default_raise_exception(self):
         from django.db.utils import ProgrammingError
         new_state = self.set_up_test_model('test')
@@ -173,6 +174,7 @@ class MigrationTests(OperationTestBase):
             with self.collect_sql():
                 self.apply_operations('test', new_state, operations)
 
+    @postgres_fixture()
     def test_add_notnull_without_default_on_backwards(self):
         project_state = self.set_up_test_model('test')
         operations = [
@@ -203,6 +205,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_add_notnull_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -220,6 +223,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_type(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -240,6 +244,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_notnull_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -270,6 +275,7 @@ class MigrationTests(OperationTestBase):
     # ## ref: https://github.com/django/django/blob/3.2.12/django/db/backends/base/schema.py#L524
     # ## django-redshift-backend also does not support in-database defaults
     @pytest.mark.skip('django-redshift-backend does not support in-database defaults')
+    @postgres_fixture()
     def test_change_default(self):
         # https://github.com/jazzband/django-redshift-backend/issues/63
         new_state = self.set_up_test_model('test')
@@ -297,6 +303,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_notnull_to_nullable(self):
         # https://github.com/jazzband/django-redshift-backend/issues/63
         new_state = self.set_up_test_model('test')

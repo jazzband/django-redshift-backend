@@ -6,11 +6,10 @@ import unittest
 
 from django.db import connections
 from django.core.management import call_command
-import pytest
 
-from django_redshift_backend.base import BasePGDatabaseWrapper
 from test_base import OperationTestBase
 
+from conftest import skipif_no_database, postgres_fixture
 
 def norm_sql(sql):
     return ' '.join(sql.split()).replace('( ', '(').replace(' )', ')').replace(' ;', ';')
@@ -188,8 +187,7 @@ class IntrospectionTest(unittest.TestCase):
             self.assertEqual(self.expected_indexes_query, executed_sql)
 
 
-@pytest.mark.skipif(not os.environ.get('TEST_WITH_POSTGRES'),
-                    reason='to run, TEST_WITH_POSTGRES=1 tox')
+@skipif_no_database
 class InspectDbTests(OperationTestBase):
     available_apps = []
     databases = {'default'}
@@ -210,11 +208,10 @@ class InspectDbTests(OperationTestBase):
     def tearDown(self):
         self.cleanup_test_tables()
 
-    @mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
-    @mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+    @postgres_fixture()
     def test_inspectdb(self):
         self.set_up_test_model('test')
         out = StringIO()
-        call_command('inspectdb', stdout=out)
+        call_command('inspectdb', 'test_pony', stdout=out)
         print(out.getvalue())
         self.assertIn(self.expected_pony_model, out.getvalue())
