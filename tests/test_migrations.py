@@ -37,7 +37,40 @@ class MigrationTests(OperationTestBase):
         print('\n'.join(collected_sql))
 
     @postgres_fixture()
-    def test_alter_size(self):
+    def test_alter_size_with_nullable(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=True),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=20, verbose_name='name', null=True),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=True),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            # add column
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''',
+            # increase size
+            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
+            # decrease size
+            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
+        ], sqls)
+
+    @postgres_fixture()
+    def test_alter_size_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
             migrations.AddField(
@@ -48,12 +81,12 @@ class MigrationTests(OperationTestBase):
             migrations.AlterField(
                 model_name='Pony',
                 name='name',
-                field=models.CharField(max_length=20, verbose_name='name'),
+                field=models.CharField(max_length=20, verbose_name='name', default=''),
             ),
             migrations.AlterField(
                 model_name='Pony',
                 name='name',
-                field=models.CharField(max_length=10, verbose_name='name'),
+                field=models.CharField(max_length=10, verbose_name='name', default=''),
             ),
         ]
 
@@ -61,9 +94,15 @@ class MigrationTests(OperationTestBase):
             self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
+            # add column
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+            # increase size
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
+            # decrease size
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) DEFAULT '' NOT NULL;''',
+            '''UPDATE test_pony SET "name_tmp" = "name" WHERE "name" IS NOT NULL;''',
+            '''ALTER TABLE test_pony DROP COLUMN "name" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
 
     @postgres_fixture()

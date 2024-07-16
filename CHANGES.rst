@@ -18,6 +18,7 @@ Features:
 Bug Fixes:
 
 * #134 inspectdb should suppress output 'id = AutoField(primary_key=True)'
+* #134 fix for decreasing size of column with default by create-copy-drop-rename strategy.
 
 3.0.0 (2022/02/27)
 ------------------

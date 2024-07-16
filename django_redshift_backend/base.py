@@ -849,6 +849,9 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         old_max_length = _get_max_length(old_field)
         new_max_length = _get_max_length(new_field)
+        decrease_size_with_default = old_default is not None and (
+            old_max_length > new_max_length
+        )
 
         # Size is changed
         if (
@@ -856,6 +859,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             and old_max_length is not None
             and new_max_length is not None
             and old_max_length != new_max_length
+            and not decrease_size_with_default
         ):
             # if shrink size as `old_field.max_length > new_field.max_length` and
             # larger data in database, this change will raise exception.
@@ -921,7 +925,11 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             fragment = actions.pop(0)
 
         # Type or default is changed?
-        elif (old_type != new_type) or needs_database_default:
+        elif (
+            (old_type != new_type)
+            or needs_database_default
+            or decrease_size_with_default
+        ):
             fragment, actions = self._alter_column_with_recreate(
                 model, old_field, new_field
             )
