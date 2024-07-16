@@ -67,6 +67,32 @@ class MigrationTests(OperationTestBase):
         ], sqls)
 
     @postgres_fixture()
+    def test_add_unique_column(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name_with_default',
+                field=models.CharField(max_length=10, default='', unique=True),
+            ),
+            migrations.AddField(
+                model_name='Pony',
+                name='name_with_nullable',
+                field=models.CharField(max_length=10, null=True, unique=True),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_with_default" varchar(10) DEFAULT '' NOT NULL;''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_with_nullable" varchar(10) NULL;''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_with_default_b3620670_uniq" UNIQUE ("name_with_default");''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_with_nullable_d1043f78_uniq" UNIQUE ("name_with_nullable");''',
+        ], sqls)
+
+    @postgres_fixture()
     def test_alter_size_for_unique(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -86,10 +112,11 @@ class MigrationTests(OperationTestBase):
             self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
-            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL UNIQUE;''',
-            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_name_key";''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+            # ADD UNIQUE "name"
+            # DROP UNIQUE "name"
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_key" UNIQUE ("name");'''
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_2c070d2a_uniq" UNIQUE ("name");'''
         ], sqls)
 
     @postgres_fixture()

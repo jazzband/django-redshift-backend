@@ -13,6 +13,7 @@ Features:
 * #83 Drop Python-3.6 support.
 * #127 Drop Python-3.7 support.
 * #83 Drop Django-2.2 support.
+* #134 Support adding COLUMN with UNIQUE; adding column without UNIQUE then add UNIQUE CONSTRAINT.
 
 Bug Fixes:
 

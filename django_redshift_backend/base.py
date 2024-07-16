@@ -307,6 +307,13 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             "column": self.quote_name(field.column),
             "definition": definition,
         }
+
+        # ## Redshift
+        if field.unique:
+            # temporarily remove UNIQUE constraint from sql
+            # because Redshift can't add column with UNIQUE constraint.
+            sql = sql.rstrip(" UNIQUE")
+
         # ## Redshift
         if not field.null and self.effective_default(field) is None:
             # Redshift Can't add NOT NULL column without DEFAULT.
@@ -320,6 +327,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # ## original BasePGDatabaseSchemaEditor.add_field has CREATE INDEX.
         # ## Redshift doesn't support INDEX.
+
+        # Add UNIQUE constraints later
+        if field.unique:
+            self.deferred_sql.append(self._create_unique_sql(model, [field]))
 
         # Add any FK constraints later
         if (
