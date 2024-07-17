@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os
 import unittest
 
 from django.db import connections
 from django.db.utils import NotSupportedError
 from django.core.management.color import no_style
-import pytest
+
+from conftest import skipif_no_database
 
 
 def norm_sql(sql):
@@ -153,8 +153,7 @@ class MigrationTest(unittest.TestCase):
         from testapp.models import TestModelWithMetaKeys
         self.check_model_creation(TestModelWithMetaKeys, expected_ddl_meta_keys)
 
-    @pytest.mark.skipif(not os.environ.get('TEST_WITH_POSTGRES'),
-                        reason='to run, TEST_WITH_POSTGRES=1 tox')
+    @skipif_no_database
     def test_sqlmigrate(self):
         from django.db import connection
         from django.db.migrations.loader import MigrationLoader

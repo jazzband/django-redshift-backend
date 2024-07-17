@@ -1,4 +1,3 @@
-import os
 import contextlib
 from unittest import mock
 
@@ -6,14 +5,11 @@ from django.db import migrations, models
 from django.db.migrations.state import ProjectState
 import pytest
 
-from django_redshift_backend.base import BasePGDatabaseWrapper
 from test_base import OperationTestBase
+from conftest import skipif_no_database, postgres_fixture
 
 
-@pytest.mark.skipif(not os.environ.get('TEST_WITH_POSTGRES'),
-                    reason='to run, TEST_WITH_POSTGRES=1 tox')
-@mock.patch('django_redshift_backend.base.DatabaseWrapper.data_types', BasePGDatabaseWrapper.data_types)
-@mock.patch('django_redshift_backend.base.DatabaseSchemaEditor._get_create_options', lambda self, model: '')
+@skipif_no_database
 class MigrationTests(OperationTestBase):
     available_apps = ["testapp"]
     databases = {'default'}
@@ -40,7 +36,41 @@ class MigrationTests(OperationTestBase):
 
         print('\n'.join(collected_sql))
 
-    def test_alter_size(self):
+    @postgres_fixture()
+    def test_alter_size_with_nullable(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=True),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=20, verbose_name='name', null=True),
+            ),
+            migrations.AlterField(
+                model_name='Pony',
+                name='name',
+                field=models.CharField(max_length=10, verbose_name='name', null=True),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            # add column
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) NULL;''',
+            # increase size
+            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
+            # decrease size
+            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
+        ], sqls)
+
+    @postgres_fixture()
+    def test_alter_size_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
             migrations.AddField(
@@ -51,12 +81,12 @@ class MigrationTests(OperationTestBase):
             migrations.AlterField(
                 model_name='Pony',
                 name='name',
-                field=models.CharField(max_length=20, verbose_name='name'),
+                field=models.CharField(max_length=20, verbose_name='name', default=''),
             ),
             migrations.AlterField(
                 model_name='Pony',
                 name='name',
-                field=models.CharField(max_length=10, verbose_name='name'),
+                field=models.CharField(max_length=10, verbose_name='name', default=''),
             ),
         ]
 
@@ -64,11 +94,44 @@ class MigrationTests(OperationTestBase):
             self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
+            # add column
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+            # increase size
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(10);''',
+            # decrease size
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_tmp" varchar(10) DEFAULT '' NOT NULL;''',
+            '''UPDATE test_pony SET "name_tmp" = "name" WHERE "name" IS NOT NULL;''',
+            '''ALTER TABLE test_pony DROP COLUMN "name" CASCADE;''',
+            '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
 
+    @postgres_fixture()
+    def test_add_unique_column(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='name_with_default',
+                field=models.CharField(max_length=10, default='', unique=True),
+            ),
+            migrations.AddField(
+                model_name='Pony',
+                name='name_with_nullable',
+                field=models.CharField(max_length=10, null=True, unique=True),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_with_default" varchar(10) DEFAULT '' NOT NULL;''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name_with_nullable" varchar(10) NULL;''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_with_default_b3620670_uniq" UNIQUE ("name_with_default");''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_with_nullable_d1043f78_uniq" UNIQUE ("name_with_nullable");''',
+        ], sqls)
+
+    @postgres_fixture()
     def test_alter_size_for_unique(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -88,12 +151,14 @@ class MigrationTests(OperationTestBase):
             self.apply_operations('test', new_state, operations)
 
         self.assertEqual([
-            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL UNIQUE;''',
-            '''ALTER TABLE "test_pony" DROP CONSTRAINT "test_pony_name_key";''',
+            '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
+            # ADD UNIQUE "name"
+            # DROP UNIQUE "name"
             '''ALTER TABLE "test_pony" ALTER COLUMN "name" TYPE varchar(20);''',
-            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_key" UNIQUE ("name");'''
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_2c070d2a_uniq" UNIQUE ("name");'''
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_size_for_pk(self):
         setup_operations = [migrations.CreateModel(
             'Pony',
@@ -120,6 +185,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_name_2c070d2a_pk" PRIMARY KEY ("name");''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_size_for_fk(self):
         setup_operations = [
             migrations.CreateModel(
@@ -159,6 +225,7 @@ class MigrationTests(OperationTestBase):
                 ''' FOREIGN KEY ("pony_id") REFERENCES "test_pony" ("id");'''),
         ], sqls)
 
+    @postgres_fixture()
     def test_add_notnull_without_default_raise_exception(self):
         from django.db.utils import ProgrammingError
         new_state = self.set_up_test_model('test')
@@ -173,6 +240,7 @@ class MigrationTests(OperationTestBase):
             with self.collect_sql():
                 self.apply_operations('test', new_state, operations)
 
+    @postgres_fixture()
     def test_add_notnull_without_default_on_backwards(self):
         project_state = self.set_up_test_model('test')
         operations = [
@@ -203,6 +271,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_add_notnull_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -220,6 +289,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_type(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -240,6 +310,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_notnull_with_default(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -270,6 +341,7 @@ class MigrationTests(OperationTestBase):
     # ## ref: https://github.com/django/django/blob/3.2.12/django/db/backends/base/schema.py#L524
     # ## django-redshift-backend also does not support in-database defaults
     @pytest.mark.skip('django-redshift-backend does not support in-database defaults')
+    @postgres_fixture()
     def test_change_default(self):
         # https://github.com/jazzband/django-redshift-backend/issues/63
         new_state = self.set_up_test_model('test')
@@ -297,6 +369,7 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony RENAME COLUMN "name_tmp" TO "name";''',
         ], sqls)
 
+    @postgres_fixture()
     def test_alter_notnull_to_nullable(self):
         # https://github.com/jazzband/django-redshift-backend/issues/63
         new_state = self.set_up_test_model('test')

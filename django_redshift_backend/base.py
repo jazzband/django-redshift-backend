@@ -307,6 +307,13 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             "column": self.quote_name(field.column),
             "definition": definition,
         }
+
+        # ## Redshift
+        if field.unique:
+            # temporarily remove UNIQUE constraint from sql
+            # because Redshift can't add column with UNIQUE constraint.
+            sql = sql.rstrip(" UNIQUE")
+
         # ## Redshift
         if not field.null and self.effective_default(field) is None:
             # Redshift Can't add NOT NULL column without DEFAULT.
@@ -320,6 +327,10 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         # ## original BasePGDatabaseSchemaEditor.add_field has CREATE INDEX.
         # ## Redshift doesn't support INDEX.
+
+        # Add UNIQUE constraints later
+        if field.unique:
+            self.deferred_sql.append(self._create_unique_sql(model, [field]))
 
         # Add any FK constraints later
         if (
@@ -838,13 +849,17 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 
         old_max_length = _get_max_length(old_field)
         new_max_length = _get_max_length(new_field)
+        decrease_size_with_default = old_default is not None and (
+            old_max_length > new_max_length
+        )
 
         # Size is changed
         if (
-            type(old_field) == type(new_field)
+            type(old_field) is type(new_field)
             and old_max_length is not None
             and new_max_length is not None
             and old_max_length != new_max_length
+            and not decrease_size_with_default
         ):
             # if shrink size as `old_field.max_length > new_field.max_length` and
             # larger data in database, this change will raise exception.
@@ -910,7 +925,11 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             fragment = actions.pop(0)
 
         # Type or default is changed?
-        elif (old_type != new_type) or needs_database_default:
+        elif (
+            (old_type != new_type)
+            or needs_database_default
+            or decrease_size_with_default
+        ):
             fragment, actions = self._alter_column_with_recreate(
                 model, old_field, new_field
             )
@@ -1069,6 +1088,19 @@ class DatabaseCreation(BasePGDatabaseCreation):
 
 
 class DatabaseIntrospection(BasePGDatabaseIntrospection):
+    # to avoid output 'id = meta.AutoField(primary_key=True)',
+    # return 'AutoField' for 'identity'.
+    def get_field_type(self, data_type, description):
+        field_type = super().get_field_type(data_type, description)
+        if description.default and "identity" in description.default:
+            if field_type == "IntegerField":
+                return "AutoField"
+            elif field_type == "BigIntegerField":
+                return "BigAutoField"
+            elif field_type == "SmallIntegerField":
+                return "SmallAutoField"
+        return field_type
+
     def get_table_description(self, cursor, table_name):
         """
         Return a description of the table with the DB-API cursor.description
