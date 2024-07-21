@@ -1,4 +1,4 @@
-Django<4
+-e ../..[psycopg2-binary]
 django-environ==0.8.1
 django-sql-explorer
--e ../..
+python-dateutil>=2.9
