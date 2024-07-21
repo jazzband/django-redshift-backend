@@ -50,10 +50,6 @@ def postgres_fixture():
                 BasePGDatabaseWrapper.data_types,
             ), \
             mock.patch(
-                'django_redshift_backend.base.DatabaseSchemaEditor._modify_params_for_redshift',
-                lambda self, *args: args,
-            ), \
-            mock.patch(
                 'django_redshift_backend.base.DatabaseSchemaEditor._get_create_options',
                 lambda self, model: '',
             ):

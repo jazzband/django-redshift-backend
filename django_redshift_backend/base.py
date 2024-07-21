@@ -35,7 +35,7 @@ from django.db.models import Index
 from django.db.utils import NotSupportedError, ProgrammingError
 
 from django_redshift_backend.meta import DistKey, SortKey
-from psycopg2.extensions import Binary
+
 
 logger = logging.getLogger("django.db.backends")
 
@@ -186,36 +186,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     def remove_index(self, model, index, concurrently=False):
         # Redshift doesn't support INDEX.
         pass
-
-    def column_sql(self, *args, **kwargs):
-        definition, params = super().column_sql(*args, **kwargs)
-        definition, params = self._modify_params_for_redshift(definition, params)
-        return definition, params
-
-    def _modify_params_for_redshift(self, definition, params):
-        """
-        When passing a bytes data type to `%s` placeholder in SQL, psycopg2 adds `::bytea` cast at parameter expansion. However, Redshift does not support `::bytea` cast, so decode psycopg2.extensions.Binary object into utf-8 [#] to str in params and explicitly cast to `::varbyte`.
-
-        [#]: https://docs.aws.amazon.com/redshift/latest/dg/r_VARBYTE_type.html
-
-        For example, suppose the following SQL and params are input::
-
-            definition = "ALTER TABLE "test" ADD COLUMN "hash" varbyte DEFAULT %s"
-            params = [b"\\x00\\x01"]
-
-        Then this function returns the following::
-
-            definition = "ALTER TABLE "test" ADD COLUMN "hash" varbyte DEFAULT %s::varbyte"
-            params = ["\\x00\\x01"]
-        """
-        parsed_def = re.split("(%s)", definition)
-        placeholder_locs = [i for i, x in enumerate(parsed_def) if x == "%s"]
-        for i, p in enumerate(params):
-            if isinstance(p, Binary):
-                params[i] = p.adapted.decode("utf-8")
-                parsed_def[placeholder_locs[i]] = "%s::varbyte"
-        definition = "".join(parsed_def)
-        return definition, params
 
     def create_model(self, model):
         """
@@ -763,22 +733,14 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             },
             params,
         )
-
-        type_cast = ""
-        if new_field.get_internal_type() == "BinaryField":
-            # In most cases, we don't change the type to a type that can't be cast,
-            # so we don't check it.
-            type_cast = "::" + DatabaseWrapper.data_types["BinaryField"]
-
         # ## UPDATE <table> SET 'tmp' = <orig column>
         actions.append(
             (
-                "UPDATE %(table)s SET %(new_column)s = %(old_column)s%(cast)s WHERE %(old_column)s IS NOT NULL"
+                "UPDATE %(table)s SET %(new_column)s = %(old_column)s WHERE %(old_column)s IS NOT NULL"
                 % {
                     "table": model._meta.db_table,
                     "new_column": self.quote_name(new_field.column + "_tmp"),
                     "old_column": self.quote_name(new_field.column),
-                    "cast": type_cast,
                 },
                 [],
             )
@@ -1118,7 +1080,6 @@ redshift_data_types = {
     "BigAutoField": "bigint identity(1, 1)",
     "TextField": "varchar(max)",  # text must be varchar(max)
     "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
-    "BinaryField": "varbyte",  # redshift doesn't support bytea
 }
 
 

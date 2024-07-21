@@ -290,34 +290,6 @@ class MigrationTests(OperationTestBase):
         ], sqls)
 
     @postgres_fixture()
-    def test_add_binary(self):
-        from django_redshift_backend.base import DatabaseWrapper
-
-        new_state = self.set_up_test_model('test')
-        operations = [
-            migrations.AddField(
-                model_name='Pony',
-                name='hash',
-                field=models.BinaryField(
-                    max_length=10,
-                    verbose_name='hash',
-                    null=False,
-                    default=rb'\x00\x01\x02\x03\x04',
-                ),
-            ),
-        ]
-
-        with self.collect_sql() as sqls:
-            self.apply_operations('test', new_state, operations)
-
-        bin_type = DatabaseWrapper.data_types['BinaryField']
-        self.assertEqual([
-            f'''ALTER TABLE "test_pony" ADD COLUMN "hash" {bin_type} DEFAULT '''
-            fr"'\\x00\\x01\\x02\\x03\\x04'::{bin_type} "
-            '''NOT NULL;''',
-        ], sqls)
-
-    @postgres_fixture()
     def test_alter_type(self):
         new_state = self.set_up_test_model('test')
         operations = [
@@ -417,40 +389,4 @@ class MigrationTests(OperationTestBase):
             '''UPDATE test_pony SET "weight_tmp" = "weight" WHERE "weight" IS NOT NULL;''',
             '''ALTER TABLE test_pony DROP COLUMN "weight" CASCADE;''',
             '''ALTER TABLE test_pony RENAME COLUMN "weight_tmp" TO "weight";''',
-        ], sqls)
-
-    @postgres_fixture()
-    def test_alter_type_char_to_binary(self):
-        from django_redshift_backend.base import DatabaseWrapper
-
-        new_state = self.set_up_test_model('test')
-        operations = [
-            migrations.AddField(
-                model_name='Pony',
-                name='hash',
-                field=models.CharField(max_length=10, verbose_name='hash', null=False, default=''),
-            ),
-            migrations.AlterField(
-                model_name='Pony',
-                name='hash',
-                field=models.BinaryField(
-                    max_length=10,
-                    verbose_name='hash',
-                    null=False,
-                    default=rb'\x00\x01\x02\x03\x04',
-                ),
-            ),
-        ]
-
-        with self.collect_sql() as sqls:
-            self.apply_operations('test', new_state, operations)
-
-        bin_type = DatabaseWrapper.data_types['BinaryField']
-
-        self.assertEqual([
-            '''ALTER TABLE "test_pony" ADD COLUMN "hash" varchar(10) DEFAULT '' NOT NULL;''',
-            f'''ALTER TABLE "test_pony" ADD COLUMN "hash_tmp" {bin_type} DEFAULT '\\\\x00\\\\x01\\\\x02\\\\x03\\\\x04'::{bin_type} NOT NULL;''',
-            f'''UPDATE test_pony SET "hash_tmp" = "hash"::{bin_type} WHERE "hash" IS NOT NULL;''',
-            '''ALTER TABLE test_pony DROP COLUMN "hash" CASCADE;''',
-            '''ALTER TABLE test_pony RENAME COLUMN "hash_tmp" TO "hash";''',
         ], sqls)
