@@ -1,4 +1,4 @@
-from django.db.backends.base.introspection import (
+from django_redshift_backend._vendor.django40.db.backends.base.introspection import (
     BaseDatabaseIntrospection,
     FieldInfo,
     TableInfo,

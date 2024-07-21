@@ -3,8 +3,8 @@ import sys
 from psycopg2 import errorcodes
 
 from django.core.exceptions import ImproperlyConfigured
-from django.db.backends.base.creation import BaseDatabaseCreation
-from django.db.backends.utils import strip_quotes
+from django_redshift_backend._vendor.django40.db.backends.base.creation import BaseDatabaseCreation
+from django_redshift_backend._vendor.django40.db.backends.utils import strip_quotes
 
 
 class DatabaseCreation(BaseDatabaseCreation):

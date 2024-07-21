@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from django.db.backends.ddl_references import (
+from django_redshift_backend._vendor.django40.db.backends.ddl_references import (
     Columns,
     Expressions,
     ForeignKeyName,
@@ -9,7 +9,7 @@ from django.db.backends.ddl_references import (
     Statement,
     Table,
 )
-from django.db.backends.utils import names_digest, split_identifier
+from django_redshift_backend._vendor.django40.db.backends.utils import names_digest, split_identifier
 from django.db.models import Deferrable, Index
 from django.db.models.sql import Query
 from django.db.transaction import TransactionManagementError, atomic

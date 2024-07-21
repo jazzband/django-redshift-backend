@@ -1,7 +1,7 @@
 import operator
 
 from django.db import InterfaceError
-from django.db.backends.base.features import BaseDatabaseFeatures
+from django_redshift_backend._vendor.django40.db.backends.base.features import BaseDatabaseFeatures
 from django.utils.functional import cached_property
 
 

@@ -6,7 +6,7 @@ import sqlparse
 
 from django.conf import settings
 from django.db import NotSupportedError, transaction
-from django.db.backends import utils
+from django_redshift_backend._vendor.django40.db.backends import utils
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.regex_helper import _lazy_re_compile

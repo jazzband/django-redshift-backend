@@ -11,7 +11,6 @@ import re
 import uuid
 import logging
 
-import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
@@ -1075,46 +1074,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                 }
             )
             super().remove_field(model, field)
-
-    # backwards compatiblity for django
-    # refs: https://github.com/django/django/pull/14459/files
-    def _create_unique_sql(
-        self,
-        model,
-        fields,
-        name=None,
-        condition=None,
-        deferrable=None,
-        include=None,
-        opclasses=None,
-        expressions=None,
-    ):
-        if django.VERSION >= (4,):  # dj40 support
-            return super()._create_unique_sql(
-                model,
-                fields,
-                name=name,
-                condition=condition,
-                deferrable=deferrable,
-                include=include,
-                opclasses=opclasses,
-                expressions=expressions,
-            )
-        elif django.VERSION >= (3,):  # dj32 support
-            columns = [
-                field.column if hasattr(field, "column") else field for field in fields
-            ]
-            return super()._create_unique_sql(
-                model,
-                columns,
-                name=name,
-                condition=condition,
-                deferrable=deferrable,
-                include=include,
-                opclasses=opclasses,
-            )
-        else:  # dj22 or earlier are not supported
-            raise NotImplementedError
 
 
 redshift_data_types = {

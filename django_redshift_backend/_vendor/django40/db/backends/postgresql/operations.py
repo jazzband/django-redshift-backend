@@ -1,8 +1,8 @@
 from psycopg2.extras import Inet
 
 from django.conf import settings
-from django.db.backends.base.operations import BaseDatabaseOperations
-from django.db.backends.utils import split_tzname_delta
+from django_redshift_backend._vendor.django40.db.backends.base.operations import BaseDatabaseOperations
+from django_redshift_backend._vendor.django40.db.backends.utils import split_tzname_delta
 
 
 class DatabaseOperations(BaseDatabaseOperations):
