@@ -15,14 +15,17 @@ import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.db.backends.base.introspection import FieldInfo, TableInfo
-from django.db.backends.base.schema import (
+from django.db.models import Index
+from django.db.utils import NotSupportedError, ProgrammingError
+
+from ._vendor.django40.db.backends.base.introspection import FieldInfo, TableInfo
+from ._vendor.django40.db.backends.base.schema import (
     _is_relevant_relation,
     _related_non_m2m_objects,
 )
-from django.db.backends.base.validation import BaseDatabaseValidation
-from django.db.backends.ddl_references import Statement
-from django.db.backends.postgresql.base import (
+from ._vendor.django40.db.backends.base.validation import BaseDatabaseValidation
+from ._vendor.django40.db.backends.ddl_references import Statement
+from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
     DatabaseOperations as BasePGDatabaseOperations,
@@ -31,10 +34,7 @@ from django.db.backends.postgresql.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
-from django.db.models import Index
-from django.db.utils import NotSupportedError, ProgrammingError
-
-from django_redshift_backend.meta import DistKey, SortKey
+from .meta import DistKey, SortKey
 from psycopg2.extensions import Binary
 
 from .psycopg2adapter import RedshiftBinary
