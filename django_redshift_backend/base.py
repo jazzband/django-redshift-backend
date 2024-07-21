@@ -11,6 +11,7 @@ import re
 import uuid
 import logging
 
+import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
@@ -54,6 +55,9 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
     supports_combined_alters = False  # since django-1.8
+    allows_group_by_select_index = True  # since django-4.2
+    # since django-4.2. I don't know the Redshift supports comments or not.
+    supports_comments = False
 
     # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
     # refs django-redshift-backend #96
@@ -120,6 +124,27 @@ class DatabaseOperations(BasePGDatabaseOperations):
                 "DISTINCT ON fields is not supported by this database backend"
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
+
+    if django.VERSION < (4, 2):
+
+        def insert_statement(self, ignore_conflicts=False):
+            return "INSERT INTO"
+
+        def ignore_conflicts_suffix_sql(self, ignore_conflicts=None):
+            return ""
+
+    else:  # for >= dj42
+
+        def adapt_integerfield_value(self, value, internal_type):
+            return value
+
+        def insert_statement(self, on_conflict=None):
+            return "INSERT INTO"
+
+        def on_conflict_suffix_sql(
+            self, fields, on_conflict, update_fields, unique_fields
+        ):
+            return ""
 
 
 def _get_type_default(field):
@@ -1294,6 +1319,22 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             if row[0] not in self.ignored_tables
         ]
 
+    if django.VERSION >= (4, 2):
+
+        def get_primary_key_column(self, cursor, table_name):
+            """
+            Return the name of the primary key column for the given table.
+            """
+            columns = self.get_primary_key_columns(cursor, table_name)
+            return columns[0] if columns else None
+
+        def get_primary_key_columns(self, cursor, table_name):
+            """Return a list of primary key columns for the given table."""
+            for constraint in self.get_constraints(cursor, table_name).values():
+                if constraint["primary_key"]:
+                    return constraint["columns"]
+            return None
+
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = "redshift"
@@ -1305,6 +1346,9 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
 
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
+
+        if django.VERSION >= (4, 2):
+            self.atomic_blocks = []
 
         self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations(self)
