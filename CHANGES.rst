@@ -10,6 +10,8 @@ Incompatible Changes:
 
 Features:
 
+* #116 Add Django-4.2 support.
+* #83 Drop Django-2.2 support.
 * #83 Drop Python-3.6 support.
 * #127 Drop Python-3.7 support.
 * #83 Drop Django-2.2 support.

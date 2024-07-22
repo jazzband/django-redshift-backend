@@ -44,7 +44,7 @@ Support versions
 This product is tested with:
 
 * Python-3.8, 3.9, 3.10
-* Django-3.2, 4.0
+* Django-3.2, 4.0, 4.2
 
 License
 =======
@@ -59,6 +59,7 @@ Contents
    basic
    refs
    dev
+   design
    changes
    authors
    CODE_OF_CONDUCT

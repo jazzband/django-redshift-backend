@@ -15,14 +15,17 @@ import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.db.backends.base.introspection import FieldInfo, TableInfo
-from django.db.backends.base.schema import (
+from django.db.models import Index
+from django.db.utils import NotSupportedError, ProgrammingError
+
+from ._vendor.django40.db.backends.base.introspection import FieldInfo, TableInfo
+from ._vendor.django40.db.backends.base.schema import (
     _is_relevant_relation,
     _related_non_m2m_objects,
 )
-from django.db.backends.base.validation import BaseDatabaseValidation
-from django.db.backends.ddl_references import Statement
-from django.db.backends.postgresql.base import (
+from ._vendor.django40.db.backends.base.validation import BaseDatabaseValidation
+from ._vendor.django40.db.backends.ddl_references import Statement
+from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseFeatures as BasePGDatabaseFeatures,
     DatabaseWrapper as BasePGDatabaseWrapper,
     DatabaseOperations as BasePGDatabaseOperations,
@@ -31,10 +34,7 @@ from django.db.backends.postgresql.base import (
     DatabaseCreation as BasePGDatabaseCreation,
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
-from django.db.models import Index
-from django.db.utils import NotSupportedError, ProgrammingError
-
-from django_redshift_backend.meta import DistKey, SortKey
+from .meta import DistKey, SortKey
 from psycopg2.extensions import Binary
 
 from .psycopg2adapter import RedshiftBinary
@@ -55,6 +55,9 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
     supports_combined_alters = False  # since django-1.8
+    allows_group_by_select_index = True  # since django-4.2
+    # since django-4.2. I don't know the Redshift supports comments or not.
+    supports_comments = False
 
     # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
     # refs django-redshift-backend #96
@@ -121,6 +124,27 @@ class DatabaseOperations(BasePGDatabaseOperations):
                 "DISTINCT ON fields is not supported by this database backend"
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
+
+    if django.VERSION < (4, 2):
+
+        def insert_statement(self, ignore_conflicts=False):
+            return "INSERT INTO"
+
+        def ignore_conflicts_suffix_sql(self, ignore_conflicts=None):
+            return ""
+
+    else:  # for >= dj42
+
+        def adapt_integerfield_value(self, value, internal_type):
+            return value
+
+        def insert_statement(self, on_conflict=None):
+            return "INSERT INTO"
+
+        def on_conflict_suffix_sql(
+            self, fields, on_conflict, update_fields, unique_fields
+        ):
+            return ""
 
 
 def _get_type_default(field):
@@ -1076,46 +1100,6 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             )
             super().remove_field(model, field)
 
-    # backwards compatiblity for django
-    # refs: https://github.com/django/django/pull/14459/files
-    def _create_unique_sql(
-        self,
-        model,
-        fields,
-        name=None,
-        condition=None,
-        deferrable=None,
-        include=None,
-        opclasses=None,
-        expressions=None,
-    ):
-        if django.VERSION >= (4,):  # dj40 support
-            return super()._create_unique_sql(
-                model,
-                fields,
-                name=name,
-                condition=condition,
-                deferrable=deferrable,
-                include=include,
-                opclasses=opclasses,
-                expressions=expressions,
-            )
-        elif django.VERSION >= (3,):  # dj32 support
-            columns = [
-                field.column if hasattr(field, "column") else field for field in fields
-            ]
-            return super()._create_unique_sql(
-                model,
-                columns,
-                name=name,
-                condition=condition,
-                deferrable=deferrable,
-                include=include,
-                opclasses=opclasses,
-            )
-        else:  # dj22 or earlier are not supported
-            raise NotImplementedError
-
 
 redshift_data_types = {
     "AutoField": "integer identity(1, 1)",
@@ -1335,6 +1319,22 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             if row[0] not in self.ignored_tables
         ]
 
+    if django.VERSION >= (4, 2):
+
+        def get_primary_key_column(self, cursor, table_name):
+            """
+            Return the name of the primary key column for the given table.
+            """
+            columns = self.get_primary_key_columns(cursor, table_name)
+            return columns[0] if columns else None
+
+        def get_primary_key_columns(self, cursor, table_name):
+            """Return a list of primary key columns for the given table."""
+            for constraint in self.get_constraints(cursor, table_name).values():
+                if constraint["primary_key"]:
+                    return constraint["columns"]
+            return None
+
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
     vendor = "redshift"
@@ -1346,6 +1346,9 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
 
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
+
+        if django.VERSION >= (4, 2):
+            self.atomic_blocks = []
 
         self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations(self)
