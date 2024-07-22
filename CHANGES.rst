@@ -11,6 +11,7 @@ Incompatible Changes:
 Features:
 
 * #116 Add Django-4.2 support.
+  Special thanks to Grzegorz Śliwiński, who made a significant contribution to the development of Django-4.1 support in PR #111. Using this as a springboard, we have now made it possible to support Django-4.2.
 * #83 Drop Django-2.2 support.
 * #83 Drop Python-3.6 support.
 * #127 Drop Python-3.7 support.
