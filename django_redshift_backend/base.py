@@ -35,7 +35,9 @@ from django.db.models import Index
 from django.db.utils import NotSupportedError, ProgrammingError
 
 from django_redshift_backend.meta import DistKey, SortKey
+from psycopg2.extensions import Binary
 
+from .psycopg2adapter import RedshiftBinary
 
 logger = logging.getLogger("django.db.backends")
 
@@ -154,6 +156,10 @@ def _get_type_default(field):
     return default
 
 
+def _remove_length_from_type(column_type):
+    return re.sub(r"\(.*", "", column_type)
+
+
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     sql_create_table = "CREATE TABLE %(table)s (%(definition)s) %(options)s"
     sql_delete_fk = "ALTER TABLE %(table)s DROP CONSTRAINT %(name)s"
@@ -186,6 +192,25 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
     def remove_index(self, model, index, concurrently=False):
         # Redshift doesn't support INDEX.
         pass
+
+    def column_sql(self, *args, **kwargs):
+        definition, params = super().column_sql(*args, **kwargs)
+        params = self._modify_params_for_redshift(params)
+        return definition, params
+
+    def _modify_params_for_redshift(self, params):
+        """
+        `Psycopg2.extensions.Binary(b'\x80\x00')` in params is converted to `'\\x80\\x00'::bytea` when applied to SQL placeholders. However, Redshift needs to treat binary columns as `to_varbyte('8000', 'hex')::varbyte` instead of `::bytea` [#].
+
+        [#]: https://docs.aws.amazon.com/redshift/latest/dg/r_VARBYTE_type.html
+
+        So, this function converts `Binary` instances to `RedshiftBinary` instances.
+        RedshiftBinary is converted to `to_varbyte('8000', 'hex')::varbyte` when applied to placeholders.
+        """
+        new_params = [
+            RedshiftBinary(p.adapted) if isinstance(p, Binary) else p for p in params
+        ]
+        return new_params
 
     def create_model(self, model):
         """
@@ -733,14 +758,31 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             },
             params,
         )
+
+        type_cast = ""
+        if new_field.get_internal_type() == "BinaryField":
+            # In most cases, we don't change the type to a type that can't be cast,
+            # so we don't check it.
+            type_cast = "::" + _remove_length_from_type(
+                DatabaseWrapper.data_types["BinaryField"]
+            )
+        elif (
+            old_field.get_internal_type() == "BinaryField"
+            and new_field.get_internal_type() == "CharField"
+        ):
+            type_cast = "::" + _remove_length_from_type(
+                DatabaseWrapper.data_types["CharField"]
+            )
+
         # ## UPDATE <table> SET 'tmp' = <orig column>
         actions.append(
             (
-                "UPDATE %(table)s SET %(new_column)s = %(old_column)s WHERE %(old_column)s IS NOT NULL"
+                "UPDATE %(table)s SET %(new_column)s = %(old_column)s%(cast)s WHERE %(old_column)s IS NOT NULL"
                 % {
                     "table": model._meta.db_table,
                     "new_column": self.quote_name(new_field.column + "_tmp"),
                     "old_column": self.quote_name(new_field.column),
+                    "cast": type_cast,
                 },
                 [],
             )
@@ -1080,6 +1122,7 @@ redshift_data_types = {
     "BigAutoField": "bigint identity(1, 1)",
     "TextField": "varchar(max)",  # text must be varchar(max)
     "UUIDField": "varchar(32)",  # redshift doesn't support uuid fields
+    "BinaryField": "varbyte(%(max_length)s)",
 }
 
 
