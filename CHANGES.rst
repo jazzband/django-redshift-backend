@@ -18,6 +18,7 @@ Features:
 * #83 Drop Django-2.2 support.
 * #134 Support adding COLUMN with UNIQUE; adding column without UNIQUE then add UNIQUE CONSTRAINT.
 * #135 Support adding BinaryField.
+* #132 Use 36 length for UUIDFields to support including hyphens. Thanks to kylie.
 
 Bug Fixes:
 
