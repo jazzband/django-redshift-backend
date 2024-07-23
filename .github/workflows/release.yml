@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv pip install -U setuptools_scm build twine
+          uv pip install --system -U setuptools_scm build twine
 
       - name: Build package
         run: |
