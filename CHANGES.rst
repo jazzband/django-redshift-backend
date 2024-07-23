@@ -24,6 +24,7 @@ Bug Fixes:
 
 * #134 inspectdb should suppress output 'id = AutoField(primary_key=True)'
 * #134 fix for decreasing size of column with default by create-copy-drop-rename strategy.
+* #118 fix constraint creation using the wrong table and column name. Thanks to BlueMagma.
 
 3.0.0 (2022/02/27)
 ------------------

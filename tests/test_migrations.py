@@ -504,3 +504,61 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE test_pony DROP COLUMN "hash" CASCADE;''',
             '''ALTER TABLE test_pony RENAME COLUMN "hash_tmp" TO "hash";''',
         ], sqls)
+
+    @postgres_fixture()
+    def test_foreign_key_to_id(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.CreateModel(
+                'Rider',
+                [
+                    ('id', models.AutoField(primary_key=True)),
+                    ('pony', models.ForeignKey('Pony', models.CASCADE)),
+                ],
+            ),
+        ]
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        if TEST_WITH_POSTGRES:
+            identity = "serial"
+        elif TEST_WITH_REDSHIFT:
+            identity = "integer identity(1, 1)"
+
+        self.assertEqual([
+            f'''CREATE TABLE "test_rider" ("id" {identity} NOT NULL PRIMARY KEY, "pony_id" integer NOT NULL) ;''',
+            '''ALTER TABLE "test_rider" ADD CONSTRAINT "test_rider_pony_id_3c028c84_fk_test_pony_id"'''
+            ''' FOREIGN KEY ("pony_id") REFERENCES "test_pony" ("id");''',
+        ], sqls)
+
+    @postgres_fixture()
+    def test_foreign_key_to_non_id(self):
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='remote',
+                field=models.IntegerField(unique=True, null=True),
+            ),
+            migrations.CreateModel(
+                'Rider',
+                [
+                    ('id', models.AutoField(primary_key=True)),
+                    ('pony_remote', models.ForeignKey('Pony', on_delete=models.CASCADE, to_field="remote")),
+                ],
+            ),
+        ]
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        if TEST_WITH_POSTGRES:
+            identity = "serial"
+        elif TEST_WITH_REDSHIFT:
+            identity = "integer identity(1, 1)"
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "remote" integer NULL;''',
+            f'''CREATE TABLE "test_rider" ("id" {identity} NOT NULL PRIMARY KEY, "pony_remote_id" integer NOT NULL) ;''',
+            '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_remote_e347b432_uniq" UNIQUE ("remote");''',
+            '''ALTER TABLE "test_rider" ADD CONSTRAINT "test_rider_pony_remote_id_269d66d9_fk_test_pony_remote" FOREIGN KEY ("pony_remote_id") REFERENCES "test_pony" ("remote");'''
+        ], sqls)
