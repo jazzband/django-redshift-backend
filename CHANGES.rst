@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+4.1.0 (Unreleased)
+------------------
+
+Features:
+
+* #140 Add Python-3.11 and 3.12 support. Thanks to Grzegorz Śliwiński.
+
 4.0.0 (2024/07/23)
 ------------------
 
