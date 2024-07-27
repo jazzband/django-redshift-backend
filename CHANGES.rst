@@ -1,6 +1,15 @@
 CHANGES
 =======
 
+4.2.0 (unreleased)
+------------------
+
+General:
+
+Features:
+
+Bug Fixes:
+
 4.1.0 (2024/07/27)
 ------------------
 
