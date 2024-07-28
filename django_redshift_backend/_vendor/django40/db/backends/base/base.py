@@ -5,6 +5,7 @@ import time
 import warnings
 from collections import deque
 from contextlib import contextmanager
+from datetime import timezone as pytimezone
 
 try:
     import zoneinfo
@@ -22,6 +23,9 @@ from django.db.utils import DatabaseErrorWrapper
 from django.utils import timezone
 from django.utils.asyncio import async_unsafe
 from django.utils.functional import cached_property
+
+# django.utils.timezone.utc has been removed in django 5.0 
+timezone.utc = pytimezone.utc
 
 NO_DB_ALIAS = "__no_db__"
 
