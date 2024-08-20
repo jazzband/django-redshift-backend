@@ -1,12 +1,12 @@
 CHANGES
 =======
 
-4.1.1 (unreleased)
+4.1.1 (2024/08/20)
 ------------------
 
 Bug Fixes:
 
-* Broken django.db.backends.signals.connection_created signal
+* #147 Broken django.db.backends.signals.connection_created signal
 
 4.1.0 (2024/07/27)
 ------------------
