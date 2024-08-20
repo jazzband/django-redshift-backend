@@ -16,7 +16,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import DEFAULT_DB_ALIAS, DatabaseError
 from django_redshift_backend._vendor.django40.db.backends import utils
 from django_redshift_backend._vendor.django40.db.backends.base.validation import BaseDatabaseValidation
-from django_redshift_backend._vendor.django40.db.backends.signals import connection_created
+from django.db.backends.signals import connection_created
 from django.db.transaction import TransactionManagementError
 from django.db.utils import DatabaseErrorWrapper
 from django.utils import timezone
