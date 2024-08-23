@@ -28,10 +28,6 @@
 				"ms-python.python",
 				"charliermarsh.ruff"
 			],
-			// Set *default* container specific settings.json values on container create.
-			"settings": {
-				"ruff.path": ["/usr/local/py-utils/bin/ruff"]
-			}
 		}
 	},
 
