@@ -47,11 +47,11 @@ jobs:
     - name: Install dependencies
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
-        uv pip install --system --upgrade tox-uv tox-gh-actions
+        uv sync
 
     - name: Tox tests
       run: |
-        tox -v
+        .venv/bin/tox -v
       env:
         DJANGO: ${{ matrix.django-version }}
         TEST_WITH_POSTGRES: 1

@@ -20,8 +20,8 @@ Setup development environment
 * Requires supported Python version
 * do setup under django-redshift-backend.git repository root as::
 
-    $ pip install -U pip setuptools
-    $ pip install -r dev-requires.txt
+    $ pip install uv
+    $ uv sync
 
 Testing
 =======

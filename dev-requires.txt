@@ -1,7 +1,0 @@
-setuptools
-wheel
-setuptools_scm
-tox-uv
-build
-twine
--e ./
