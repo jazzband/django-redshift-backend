@@ -1,3 +1,5 @@
 # setup
 
-pip install -r dev-requires.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uvx tool install ruff
+uv sync

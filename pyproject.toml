@@ -64,3 +64,19 @@ local_scheme = "no-local-version"
 
 [tool.ruff]
 exclude = ["django_redshift_backend/_vendor"]
+
+[tool.uv]
+dev-dependencies = [
+    "setuptools>=73.0.1",
+    "wheel>=0.44.0",
+    "setuptools-scm>=8.1.0",
+    "tox-uv>=1.11.2",
+    "build>=1.2.1",
+    "twine>=5.1.1",
+    "django-redshift-backend",
+    "ruff>=0.6.2",
+    "tox-gh-actions>=3.2.0",
+]
+
+[tool.uv.sources]
+django-redshift-backend = { workspace = true }
