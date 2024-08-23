@@ -28,6 +28,16 @@
 				"ms-python.python",
 				"charliermarsh.ruff"
 			],
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"editor.codeActionsOnSave": {
+					"source.fixAll": "explicit"
+				},
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff"
+				},
+				"python.defaultInterpreterPath": "/usr/local/bin/python"
+			}
 		}
 	},
 
