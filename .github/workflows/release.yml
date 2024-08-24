@@ -23,14 +23,11 @@ jobs:
       - name: Install dependencies
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv sync
 
       - name: Build package
         run: |
-          . .venv/bin/activate
-          python -m build --version
-          python -m build
-          twine check dist/*
+          uvx --from build pyproject-build --installer uv
+          uvx twine check dist/*
 
       - name: Upload packages to Jazzband
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
