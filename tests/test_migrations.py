@@ -289,6 +289,27 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD COLUMN "name" varchar(10) DEFAULT '' NOT NULL;''',
         ], sqls)
 
+    @pytest.mark.skip('django-redshift-backend does not support in-database defaults')
+    @postgres_fixture()
+    def test_add_db_default(self):
+        from django.db.models.functions import Now
+
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='birthday',
+                field=models.DateTimeField(null=False, db_default=Now()),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        self.assertEqual([
+            '''ALTER TABLE "test_pony" ADD COLUMN "birthday" timestamp with time zone DEFAULT now() NOT NULL;''',
+        ], sqls)
+
     @postgres_fixture()
     def test_add_binary(self):
         from django_redshift_backend.base import DatabaseWrapper, _remove_length_from_type

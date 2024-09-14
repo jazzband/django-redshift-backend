@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Index
+from django.db.models.expressions import Col
 from django.db.utils import NotSupportedError, ProgrammingError
 
 from ._vendor.django40.db.backends.base.introspection import FieldInfo, TableInfo
@@ -58,6 +59,11 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     allows_group_by_select_index = True  # since django-4.2
     # since django-4.2. I don't know the Redshift supports comments or not.
     supports_comments = False
+    # django-redshift-backend does not support dj50 features due to dj40 codebase.
+    # https://docs.djangoproject.com/en/5.0/releases/5.0/
+    supports_default_keyword_in_insert = False
+    supports_default_keyword_in_bulk_insert = False
+    supports_nulls_distinct_unique_constraints = False
 
     # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
     # refs django-redshift-backend #96
@@ -145,6 +151,20 @@ class DatabaseOperations(BasePGDatabaseOperations):
             self, fields, on_conflict, update_fields, unique_fields
         ):
             return ""
+
+    # copy from djang 5.0 postgresql/operations.py
+    def prepare_join_on_clause(self, lhs_table, lhs_field, rhs_table, rhs_field):
+        lhs_expr = Col(lhs_table, lhs_field)
+        rhs_expr = Col(rhs_table, rhs_field)
+
+        # Cast is not impremented for redshift.
+        # Because the following code generate redundant SQL like:
+        # ... LEFT OUTER JOIN "tbl2" ON ("tbl1"."id" = CAST("tbl2"."parent_id" AS integer))
+
+        # if lhs_field.db_type(self.connection) != rhs_field.db_type(self.connection):
+        #     rhs_expr = Cast(rhs_expr, lhs_field)
+
+        return lhs_expr, rhs_expr
 
 
 def _get_type_default(field):
