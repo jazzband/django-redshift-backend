@@ -60,7 +60,9 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     # since django-4.2. I don't know the Redshift supports comments or not.
     supports_comments = False
     # since django-5.0. I don't know the Redshift supports default expression
-    supports_default_keyword_in_insert = False  # TODO: research
+    supports_default_keyword_in_insert = True  # TODO: Add UnitTest https://docs.djangoproject.com/en/5.0/releases/5.0/#database-computed-default-values
+    supports_default_keyword_in_bulk_insert = True  # TODO: Add UnitTest https://docs.djangoproject.com/en/5.0/releases/5.0/#database-computed-default-values
+    supports_nulls_distinct_unique_constraints = False  # TODO: Add UnitTest https://docs.djangoproject.com/en/5.0/ref/models/constraints/#nulls-distinct
 
     # If support atomic for ddl, we should implement non-atomic migration for on rename and change type(size)
     # refs django-redshift-backend #96
