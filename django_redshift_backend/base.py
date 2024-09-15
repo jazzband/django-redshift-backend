@@ -10,6 +10,7 @@ from copy import deepcopy
 import re
 import uuid
 import logging
+import json
 
 import django
 from django.utils import timezone
@@ -53,6 +54,7 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     supports_column_check_constraints = False
     can_distinct_on_fields = False
     allows_group_by_selected_pks = False
+    has_native_json_field = False  # Redshift doesn't support JSONField.
     has_native_uuid_field = False
     supports_aggregate_filter_clause = False
     supports_combined_alters = False  # since django-1.8
@@ -165,6 +167,10 @@ class DatabaseOperations(BasePGDatabaseOperations):
         #     rhs_expr = Cast(rhs_expr, lhs_field)
 
         return lhs_expr, rhs_expr
+
+    # copy from djang 4.2 base/operations.py
+    def adapt_json_value(self, value, encoder):
+        return json.dumps(value, cls=encoder)
 
 
 def _get_type_default(field):
@@ -1124,6 +1130,9 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
 redshift_data_types = {
     "AutoField": "integer identity(1, 1)",
     "BigAutoField": "bigint identity(1, 1)",
+    # Redshift doesn't support JSONField.
+    # https://docs.aws.amazon.com/redshift/latest/dg/federated-data-types.html
+    "JSONField": "varchar",
     "TextField": "varchar(max)",  # text must be varchar(max)
     "UUIDField": "varchar(36)",  # redshift doesn't support uuid fields
     "BinaryField": "varbyte(%(max_length)s)",

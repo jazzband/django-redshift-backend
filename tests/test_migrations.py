@@ -583,3 +583,30 @@ class MigrationTests(OperationTestBase):
             '''ALTER TABLE "test_pony" ADD CONSTRAINT "test_pony_remote_e347b432_uniq" UNIQUE ("remote");''',
             '''ALTER TABLE "test_rider" ADD CONSTRAINT "test_rider_pony_remote_id_269d66d9_fk_test_pony_remote" FOREIGN KEY ("pony_remote_id") REFERENCES "test_pony" ("remote");'''
         ], sqls)
+
+    @postgres_fixture()
+    def test_add_json(self):
+        from django_redshift_backend.base import DatabaseWrapper
+
+        new_state = self.set_up_test_model('test')
+        operations = [
+            migrations.AddField(
+                model_name='Pony',
+                name='structure',
+                field=models.JSONField(
+                    verbose_name='json data',
+                    null=False,
+                    default={"key1": "value", "key2": 1},
+                ),
+            ),
+        ]
+
+        with self.collect_sql() as sqls:
+            self.apply_operations('test', new_state, operations)
+
+        data_type = DatabaseWrapper.data_types['JSONField']
+        default = """DEFAULT '{"key1": "value", "key2": 1}'"""
+
+        self.assertEqual([
+            f'''ALTER TABLE "test_pony" ADD COLUMN "structure" {data_type} {default} NOT NULL;''',
+        ], sqls)
