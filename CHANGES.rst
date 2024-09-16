@@ -9,6 +9,10 @@ Features:
 * #143 Add Django-5.0 support.
 * #152 Add Django-5.1 support.
 
+Bug Fixes:
+
+* fixes #12, #154 : disabling native json support.
+
 4.1.1 (2024/08/20)
 ------------------
 
