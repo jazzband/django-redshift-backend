@@ -72,6 +72,10 @@ class DatabaseFeatures(BasePGDatabaseFeatures):
     # refs https://github.com/django/django/blob/3702819/django/db/backends/sqlite3/schema.py#L131-L144
     can_rollback_ddl = False
 
+    # since django-5.0
+    # https://github.com/django/django/pull/16809
+    delete_can_self_reference_subquery = True
+
 
 class DatabaseOperations(BasePGDatabaseOperations):
     def last_insert_id(self, cursor, table_name, pk_name):
