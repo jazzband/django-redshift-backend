@@ -13,12 +13,15 @@ import logging
 import json
 
 import django
+from django.utils.asyncio import async_unsafe
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Index
 from django.db.models.expressions import Col
 from django.db.utils import NotSupportedError, ProgrammingError
+from django.db import connection
+
 
 from ._vendor.django40.db.backends.base.introspection import FieldInfo, TableInfo
 from ._vendor.django40.db.backends.base.schema import (
@@ -1395,3 +1398,13 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
         No constraints to check in Redshift.
         """
         pass
+
+    @async_unsafe
+    def create_cursor(self, name=None):
+        cursor = super().create_cursor()
+        DJANGO_REDSHIFT_ENABLE_TENANT_SCHEMA = getattr(settings, 'REDSHIFT_SET_TENANT_SCHEMA', False)
+
+        if DJANGO_REDSHIFT_ENABLE_TENANT_SCHEMA:
+            cursor.execute(f"SET SEARCH_PATH TO '{connection.schema_name}', public")
+        
+        return cursor
