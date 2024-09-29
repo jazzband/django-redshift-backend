@@ -15,10 +15,17 @@ import json
 import django
 from django.utils import timezone
 from django.conf import settings
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db.models import Index
 from django.db.models.expressions import Col
 from django.db.utils import NotSupportedError, ProgrammingError
+
+try:
+    from psycopg2.extensions import Binary
+except ImportError:
+    raise ImproperlyConfigured(
+        "Error loading psycopg2 module. Please install as: `pip install django-redshift-backend[psycopg2]` or `pip install django-redshift-backend[psycopg2-binary]`. For more information, see https://django-redshift-backend.readthedocs.io/en/master/basic.html#installation"
+    )
 
 from ._vendor.django40.db.backends.base.introspection import FieldInfo, TableInfo
 from ._vendor.django40.db.backends.base.schema import (
@@ -37,8 +44,6 @@ from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
 from .meta import DistKey, SortKey
-from psycopg2.extensions import Binary
-
 from .psycopg2adapter import RedshiftBinary
 
 logger = logging.getLogger("django.db.backends")
