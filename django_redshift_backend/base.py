@@ -15,7 +15,7 @@ import json
 import django
 from django.utils import timezone
 from django.conf import settings
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db.models import Index
 from django.db.models.expressions import Col
 from django.db.utils import NotSupportedError, ProgrammingError
@@ -37,9 +37,13 @@ from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseIntrospection as BasePGDatabaseIntrospection,
 )
 from .meta import DistKey, SortKey
-from psycopg2.extensions import Binary
 
-from .psycopg2adapter import RedshiftBinary
+try:
+    from psycopg2.extensions import Binary
+    from .psycopg2adapter import RedshiftBinary
+except ImportError as e:
+    raise ImproperlyConfigured("Error loading psycopg2 module: %s" % e)
+
 
 logger = logging.getLogger("django.db.backends")
 

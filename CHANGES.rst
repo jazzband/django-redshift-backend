@@ -4,6 +4,13 @@ CHANGES
 4.2.0 (Unreleased)
 ------------------
 
+General:
+
+* #149 django-redshift-backend depends directly on psycopg2.
+  If you want to use psycopg2 pre-built packages, please refer to
+  the following site for more information: 
+  https://www.psycopg.org/docs/install.html
+
 Features:
 
 * #143 Add Django-5.0 support.
