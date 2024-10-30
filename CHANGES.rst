@@ -4,6 +4,13 @@ CHANGES
 4.2.0 (Unreleased)
 ------------------
 
+General:
+
+* #149 Added a clear message on ImportError when the psycopg2
+  package cannot be found.
+  Please refer to the following site for more information: 
+  https://django-redshift-backend.readthedocs.io/en/master/basic.html#installation
+
 Features:
 
 * #143 Add Django-5.0 support.
