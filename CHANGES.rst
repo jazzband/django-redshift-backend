@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-4.2.0 (Unreleased)
+4.2.0 (2024/10/30)
 ------------------
 
 General:
@@ -18,7 +18,7 @@ Features:
 
 Bug Fixes:
 
-* fixes #12, #154 : disabling native json support.
+* fixes #12, #154 : disabling native json support. Redshift does not natively support JSON.
 
 4.1.1 (2024/08/20)
 ------------------
