@@ -68,7 +68,7 @@ Build package
 
 Use build::
 
-   $ python -m build
+   $ uv build
 
 
 Releasing
