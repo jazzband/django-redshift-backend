@@ -44,26 +44,19 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: astral-sh/setup-uv@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        cache-dependency-glob: "pyproject.toml"
+        cache-suffix: ${{ matrix.python-version }}
 
-    - uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key:
-          ${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
-        restore-keys: |
-          ${{ matrix.python-version }}-pip-
-
-    - name: Install dependencies
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        uv sync
+    - name: Install Python
+      run: uv python install ${{ matrix.python-version }}
+      env:
+        UV_PYTHON_PREFERENCE: only-managed
 
     - name: Tox tests
-      run: |
-        .venv/bin/tox -v
+      run: uv run --only-dev tox -v
       env:
         DJANGO: ${{ matrix.django-version }}
         TEST_WITH_POSTGRES: 1

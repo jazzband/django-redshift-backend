@@ -26,7 +26,7 @@ jobs:
 
       - name: Build package
         run: |
-          uvx --from build pyproject-build --installer uv
+          uv build
           uvx twine check dist/*
 
       - name: Upload packages to Jazzband
