@@ -51,7 +51,7 @@ dev = [
     "setuptools-scm>=8.1.0",
     "wheel>=0.44.0",
     "tox-uv>=1.11.2",
-    "tox-gh-actions>=3.2.0",
+    "tox-gh>=1.4.1",
     "ruff>=0.6.2",
     "twine>=5.1.1",
 ]

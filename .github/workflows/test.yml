@@ -3,15 +3,26 @@ name: Test
 on: [push, pull_request]
 
 jobs:
-  build:
-    name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
+  test:
+    name: test with Python ${{ matrix.python-version }} and Django ${{ matrix.django-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 5
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        django-version: ['3.2', '4.0', '4.2', '5.0', '5.1']
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+        django-version:
+          - '3.2'
+          - '4.0'
+          - '4.2'
+          - '5.0'
+          - '5.1'
+          - 'main'
         exclude:
           - python-version: '3.11'
             django-version: '3.2'
@@ -58,5 +69,6 @@ jobs:
     - name: Tox tests
       run: uv run --only-dev tox -v
       env:
+        TOX_GH_MAJOR_MINOR: ${{ matrix.python-version }}
         DJANGO: ${{ matrix.django-version }}
         TEST_WITH_POSTGRES: 1
