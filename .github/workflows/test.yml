@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: test with Python ${{ matrix.python-version }} and Django ${{ matrix.django-version }}
+    name: test with Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,30 +16,6 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
-        django-version:
-          - '3.2'
-          - '4.0'
-          - '4.2'
-          - '5.0'
-          - '5.1'
-          - 'main'
-        exclude:
-          - python-version: '3.11'
-            django-version: '3.2'
-          - python-version: '3.12'
-            django-version: '3.2'
-          - django-version: '5.0'
-            python-version: '3.8'
-          - django-version: '5.0'
-            python-version: '3.9'
-          - django-version: '5.1'
-            python-version: '3.8'
-          - django-version: '5.1'
-            python-version: '3.9'
-          - django-version: 'main'
-            python-version: '3.8'
-          - django-version: 'main'
-            python-version: '3.9'
 
     services:
       postgres:
@@ -70,5 +46,4 @@ jobs:
       run: uv run --only-dev tox -v
       env:
         TOX_GH_MAJOR_MINOR: ${{ matrix.python-version }}
-        DJANGO: ${{ matrix.django-version }}
         TEST_WITH_POSTGRES: 1
