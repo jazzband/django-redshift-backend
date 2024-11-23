@@ -12,7 +12,6 @@ import uuid
 import logging
 import json
 
-import django
 from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
@@ -142,26 +141,14 @@ class DatabaseOperations(BasePGDatabaseOperations):
             )
         return super(DatabaseOperations, self).distinct_sql(fields, *args)
 
-    if django.VERSION < (4, 2):
+    def adapt_integerfield_value(self, value, internal_type):
+        return value
 
-        def insert_statement(self, ignore_conflicts=False):
-            return "INSERT INTO"
+    def insert_statement(self, on_conflict=None):
+        return "INSERT INTO"
 
-        def ignore_conflicts_suffix_sql(self, ignore_conflicts=None):
-            return ""
-
-    else:  # for >= dj42
-
-        def adapt_integerfield_value(self, value, internal_type):
-            return value
-
-        def insert_statement(self, on_conflict=None):
-            return "INSERT INTO"
-
-        def on_conflict_suffix_sql(
-            self, fields, on_conflict, update_fields, unique_fields
-        ):
-            return ""
+    def on_conflict_suffix_sql(self, fields, on_conflict, update_fields, unique_fields):
+        return ""
 
     # copy from djang 5.0 postgresql/operations.py
     def prepare_join_on_clause(self, lhs_table, lhs_field, rhs_table, rhs_field):
@@ -1357,21 +1344,19 @@ class DatabaseIntrospection(BasePGDatabaseIntrospection):
             if row[0] not in self.ignored_tables
         ]
 
-    if django.VERSION >= (4, 2):
+    def get_primary_key_column(self, cursor, table_name):
+        """
+        Return the name of the primary key column for the given table.
+        """
+        columns = self.get_primary_key_columns(cursor, table_name)
+        return columns[0] if columns else None
 
-        def get_primary_key_column(self, cursor, table_name):
-            """
-            Return the name of the primary key column for the given table.
-            """
-            columns = self.get_primary_key_columns(cursor, table_name)
-            return columns[0] if columns else None
-
-        def get_primary_key_columns(self, cursor, table_name):
-            """Return a list of primary key columns for the given table."""
-            for constraint in self.get_constraints(cursor, table_name).values():
-                if constraint["primary_key"]:
-                    return constraint["columns"]
-            return None
+    def get_primary_key_columns(self, cursor, table_name):
+        """Return a list of primary key columns for the given table."""
+        for constraint in self.get_constraints(cursor, table_name).values():
+            if constraint["primary_key"]:
+                return constraint["columns"]
+        return None
 
 
 class DatabaseWrapper(BasePGDatabaseWrapper):
@@ -1385,9 +1370,7 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
     def __init__(self, *args, **kwargs):
         super(DatabaseWrapper, self).__init__(*args, **kwargs)
 
-        if django.VERSION >= (4, 2):
-            self.atomic_blocks = []
-
+        self.atomic_blocks = []
         self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations(self)
         self.client = DatabaseClient(self)
