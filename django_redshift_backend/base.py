@@ -4,8 +4,6 @@ Redshift database backend for Django based upon django PostgreSQL backend.
 Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 
-from __future__ import absolute_import
-
 from copy import deepcopy
 import re
 import uuid
@@ -121,7 +119,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
         return []
 
     def get_db_converters(self, expression):
-        converters = super(DatabaseOperations, self).get_db_converters(expression)
+        converters = super().get_db_converters(expression)
         internal_type = expression.output_field.get_internal_type()
         if internal_type == "UUIDField":
             converters.append(self.convert_uuidfield_value)
@@ -139,7 +137,7 @@ class DatabaseOperations(BasePGDatabaseOperations):
             raise NotSupportedError(
                 "DISTINCT ON fields is not supported by this database backend"
             )
-        return super(DatabaseOperations, self).distinct_sql(fields, *args)
+        return super().distinct_sql(fields, *args)
 
     def adapt_integerfield_value(self, value, internal_type):
         return value
@@ -278,7 +276,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             if m:
                 definition = re.sub(
                     r"varchar\((\d+?)\)",
-                    "varchar({0})".format(
+                    "varchar({})".format(
                         str(int(m.group(1)) * self.multiply_varchar_length)
                     ),
                     definition,
@@ -1058,7 +1056,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             if isinstance(idx, DistKey):
                 if distkey:
                     raise ValueError(
-                        "Model {} has more than one DistKey.".format(model.__name__)
+                        f"Model {model.__name__} has more than one DistKey."
                     )
                 distkey = idx
         if distkey:
@@ -1072,7 +1070,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
                     )
                 )
             normalized_field = quoted_column_name(distkey.fields[0])
-            create_options.append("DISTKEY({})".format(normalized_field))
+            create_options.append(f"DISTKEY({normalized_field})")
             # TODO: Support DISTSTYLE ALL.
 
         sortkeys = [
@@ -1368,7 +1366,7 @@ class DatabaseWrapper(BasePGDatabaseWrapper):
     data_types.update(redshift_data_types)
 
     def __init__(self, *args, **kwargs):
-        super(DatabaseWrapper, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.atomic_blocks = []
         self.features = DatabaseFeatures(self)
