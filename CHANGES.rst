@@ -8,6 +8,8 @@ General:
 
 Features:
 
+* #141 Drop Django-3.2, 4.0 support.
+
 Bug Fixes:
 
 4.2.0 (2024/10/30)
