@@ -9,6 +9,7 @@ General:
 Features:
 
 * #141 Drop Django-3.2, 4.0 support.
+* #142 Drop Python-3.8 support.
 
 Bug Fixes:
 

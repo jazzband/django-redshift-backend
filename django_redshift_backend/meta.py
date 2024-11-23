@@ -37,7 +37,7 @@ class SortKey(str):
         return hash(str(self))
 
     def deconstruct(self):
-        path = "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
+        path = "{}.{}".format(self.__class__.__module__, self.__class__.__name__)
         path = path.replace("django_redshift_backend.meta", "django_redshift_backend")
         return (path, [str(self)], {})
 
