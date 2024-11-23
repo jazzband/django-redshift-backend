@@ -8,6 +8,7 @@ General:
 
 Features:
 
+* #144 Add Python-3.13 support.
 * #141 Drop Django-3.2, 4.0 support.
 * #142 Drop Python-3.8 support.
 
