@@ -40,7 +40,6 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       uses: astral-sh/setup-uv@v5
       with:
-        enable-cache: true
         cache-dependency-glob: "pyproject.toml"
         cache-suffix: ${{ matrix.python-version }}
 
