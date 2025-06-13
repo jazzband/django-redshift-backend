@@ -1065,7 +1065,7 @@ class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
             # with migrations, so we validate here instead.
             if len(distkey.fields) != 1:
                 raise ValueError(
-                    "DistKey on model {} must have exactly " "one field.".format(
+                    "DistKey on model {} must have exactly one field.".format(
                         model.__name__
                     )
                 )

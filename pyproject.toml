@@ -3,7 +3,8 @@ name = "django-redshift-backend"
 dynamic = ["version"]
 description = "Redshift database backend for Django"
 readme = "README.rst"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.9, <4"
 authors = [
     { name = "shimizukawa", email = "shimizukawa@gmail.com" },
@@ -20,7 +21,6 @@ classifiers = [
     "Framework :: Django :: 5.0",
     "Framework :: Django :: 5.1",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
