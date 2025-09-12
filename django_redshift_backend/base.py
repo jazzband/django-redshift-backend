@@ -4,18 +4,19 @@ Redshift database backend for Django based upon django PostgreSQL backend.
 Requires psycopg 2: http://initd.org/projects/psycopg2
 """
 
-from copy import deepcopy
+import json
+import logging
 import re
 import uuid
-import logging
-import json
+from copy import deepcopy
 
-from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
+from django.db.backends.utils import split_tzname_delta
 from django.db.models import Index
 from django.db.models.expressions import Col
 from django.db.utils import NotSupportedError, ProgrammingError
+from django.utils import timezone
 
 try:
     from psycopg2.extensions import Binary
@@ -32,13 +33,25 @@ from ._vendor.django40.db.backends.base.schema import (
 from ._vendor.django40.db.backends.base.validation import BaseDatabaseValidation
 from ._vendor.django40.db.backends.ddl_references import Statement
 from ._vendor.django40.db.backends.postgresql.base import (
-    DatabaseFeatures as BasePGDatabaseFeatures,
-    DatabaseWrapper as BasePGDatabaseWrapper,
-    DatabaseOperations as BasePGDatabaseOperations,
-    DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
     DatabaseClient,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseCreation as BasePGDatabaseCreation,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
+    DatabaseFeatures as BasePGDatabaseFeatures,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
     DatabaseIntrospection as BasePGDatabaseIntrospection,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
+    DatabaseOperations as BasePGDatabaseOperations,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
+    DatabaseSchemaEditor as BasePGDatabaseSchemaEditor,
+)
+from ._vendor.django40.db.backends.postgresql.base import (
+    DatabaseWrapper as BasePGDatabaseWrapper,
 )
 from .meta import DistKey, SortKey
 from .psycopg2adapter import RedshiftBinary
@@ -165,6 +178,23 @@ class DatabaseOperations(BasePGDatabaseOperations):
     # copy from djang 4.2 base/operations.py
     def adapt_json_value(self, value, encoder):
         return json.dumps(value, cls=encoder)
+    
+    def _prepare_tzname_delta(self, tzname):
+        tzname, sign, offset = split_tzname_delta(tzname)
+        if offset:
+            sign = '-' if sign == '+' else '+'
+            return f'{tzname}{sign}{offset}'
+        return tzname
+
+    def _convert_sql_to_tz(self, sql, params, tzname):
+        if tzname and settings.USE_TZ:
+            tzname_param = self._prepare_tzname_delta(tzname)
+            return f'{sql} AT TIME ZONE %s', (*params, tzname_param)
+        return sql, params
+
+    def datetime_cast_date_sql(self, sql, params, tzname):
+        sql, params = self._convert_sql_to_tz(sql, params, tzname)
+        return f'({sql})::date', params
 
 
 def _get_type_default(field):
@@ -202,6 +232,8 @@ def _get_type_default(field):
 
 def _remove_length_from_type(column_type):
     return re.sub(r"\(.*", "", column_type)
+
+
 
 
 class DatabaseSchemaEditor(BasePGDatabaseSchemaEditor):
