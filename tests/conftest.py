@@ -12,8 +12,6 @@ from unittest import mock
 
 import pytest
 
-from django_redshift_backend.base import BasePGDatabaseWrapper
-
 TEST_WITH_POSTGRES = os.environ.get('TEST_WITH_POSTGRES')
 TEST_WITH_REDSHIFT = os.environ.get('TEST_WITH_REDSHIFT')
 
@@ -29,6 +27,38 @@ run_only_redshift = pytest.mark.skipif(
     not TEST_WITH_REDSHIFT,
     reason="Test only for redshift",
 )
+
+# Standard PostgreSQL data types for local testing against PostgreSQL
+_POSTGRES_DATA_TYPES = {
+    "AutoField": "serial",
+    "BigAutoField": "bigserial",
+    "BinaryField": "bytea",
+    "BooleanField": "boolean",
+    "CharField": "varchar(%(max_length)s)",
+    "DateField": "date",
+    "DateTimeField": "timestamp with time zone",
+    "DecimalField": "numeric(%(max_digits)s, %(decimal_places)s)",
+    "DurationField": "interval",
+    "FileField": "varchar(%(max_length)s)",
+    "FilePathField": "varchar(%(max_length)s)",
+    "FloatField": "double precision",
+    "IntegerField": "integer",
+    "BigIntegerField": "bigint",
+    "IPAddressField": "inet",
+    "GenericIPAddressField": "inet",
+    "JSONField": "jsonb",
+    "OneToOneField": "integer",
+    "PositiveBigIntegerField": "bigint",
+    "PositiveIntegerField": "integer",
+    "PositiveSmallIntegerField": "smallint",
+    "SlugField": "varchar(%(max_length)s)",
+    "SmallAutoField": "smallserial",
+    "SmallIntegerField": "smallint",
+    "TextField": "text",
+    "TimeField": "time",
+    "UUIDField": "uuid",
+}
+
 
 @contextlib.contextmanager
 def postgres_fixture():
@@ -47,14 +77,14 @@ def postgres_fixture():
         with \
             mock.patch(
                 'django_redshift_backend.base.DatabaseWrapper.data_types',
-                BasePGDatabaseWrapper.data_types,
+                _POSTGRES_DATA_TYPES,
             ), \
             mock.patch(
-                'django_redshift_backend.base.DatabaseSchemaEditor._modify_params_for_redshift',
+                'django_redshift_backend.schema.DatabaseSchemaEditor._modify_params_for_redshift',
                 lambda self, params: params
             ), \
             mock.patch(
-                'django_redshift_backend.base.DatabaseSchemaEditor._get_create_options',
+                'django_redshift_backend.schema.DatabaseSchemaEditor._get_create_options',
                 lambda self, model: '',
             ):
             yield

@@ -5,88 +5,108 @@ Design Overview
 Purpose
 ===========
 
-`django-redshift-backend` provides a backend for integrating Amazon Redshift database with the Django framework. It allows Django applications to use Redshift as their database while maintaining compatibility with Django's ORM and database abstraction layer.
+``django-redshift-backend`` provides a backend for integrating Amazon Redshift database with the Django framework. It allows Django applications to use Redshift as their database while maintaining compatibility with Django's ORM and database abstraction layer.
 
-Background of the Changes to support Django 4.2
-=====================================================
+Architecture
+===============
 
-Amazon Redshift is forked from an older version of PostgreSQL. As a result, it is difficult to directly use Django's PostgreSQL database backend, especially with the newer versions of Django (4.2, 5.0) where compatibility issues arise.
-So, the current changes are aimed at supporting Django 4.2 by including Django 4.0 code.
+The backend inherits directly from Django's **base** database backend classes (``django.db.backends.base.*``) rather than from the PostgreSQL backend. This is because:
 
-Main Changes
------------------
+- Amazon Redshift is forked from PostgreSQL 8.0.2, which is no longer supported by Django's PostgreSQL backend (Django 4.1+ requires PostgreSQL 12+).
+- Inheriting from the base backend avoids version check failures and incompatible PostgreSQL-specific code paths.
+- The backend uses **psycopg2** for database connectivity since Redshift uses the PostgreSQL wire protocol.
 
-1. **Inclusion of Django 4.0 Code**:
+Module Structure
+-------------------
 
-   - To ensure that the Redshift backend works with Django 4.2 and future versions (such as Django 5.0), we have included database-related code from Django 4.0 in the package.
-   - This avoids the difficulties in implementing the Redshift backend with Django 4.2's codebase.
-     Difficulties: https://github.com/jazzband/django-redshift-backend/pull/111
+The backend is organized into standard Django backend modules:
 
-2. **Ensuring Code Compatibility**:
+- ``base.py`` - ``DatabaseWrapper``: Connection management via psycopg2
+- ``features.py`` - ``DatabaseFeatures``: Feature flags for Redshift limitations
+- ``operations.py`` - ``DatabaseOperations``: SQL generation and type handling
+- ``schema.py`` - ``DatabaseSchemaEditor``: DDL operations and migrations
+- ``introspection.py`` - ``DatabaseIntrospection``: Database schema inspection
+- ``creation.py`` - ``DatabaseCreation``: Test database management
+- ``client.py`` - ``DatabaseClient``: Command-line client (psql)
+- ``meta.py`` - ``DistKey``, ``SortKey``: Redshift-specific model meta classes
+- ``psycopg2adapter.py`` - ``RedshiftBinary``: Binary field adapter for varbyte
 
-   - We have made necessary modifications and adjustments to ensure operation with Django 4.2 and later versions.
-   - Specific changes can be viewed at the following link: https://github.com/jazzband/django-redshift-backend/pull/129
+Key Components
+================
 
-Key Components of django-redshift-backend
-=============================================
+1. **DatabaseWrapper** (``base.py``)
 
-1. **Custom Database Backend**
+   - Inherits from ``django.db.backends.base.base.BaseDatabaseWrapper``
+   - Sets ``vendor = "redshift"``
+   - Manages psycopg2 connections (encoding, timezone, isolation level)
+   - Merges Redshift-specific data types directly into ``data_types``
 
-   - Extends Django's PostgreSQL backend
-   - Implements Redshift-specific functionality
-   - Handles differences between PostgreSQL and Redshift
+2. **DatabaseFeatures** (``features.py``)
 
-2. **SQL Compiler**
+   - Disables features not supported by Redshift:
+     ``RETURNING``, ``SELECT FOR UPDATE``, ``DISTINCT ON``,
+     check constraints, native JSON/UUID, DDL rollback,
+     ``ON CONFLICT``, aggregate ``FILTER``, etc.
 
-   - Modifies SQL generation to be compatible with Redshift
-   - Handles Redshift-specific SQL syntax and limitations
+3. **DatabaseOperations** (``operations.py``)
 
-3. **Schema Editor**
+   - PostgreSQL-compatible SQL generation with psycopg2
+   - Temporal methods use Django 4.2+ ``(sql, params)`` tuple API
+   - ``last_insert_id()`` uses ``MAX(pk)`` workaround (no ``RETURNING``)
+   - UUID fields stored as ``varchar(36)`` with custom converter
 
-   - Customizes schema migrations for Redshift
-   - Manages Redshift-specific data types and constraints
+4. **DatabaseSchemaEditor** (``schema.py``)
+
+   - 4-step column alteration: add temp column, copy data, drop old, rename
+   - DISTKEY/SORTKEY support in ``CREATE TABLE``
+   - VARCHAR length multiplier for UTF-8 byte counting
+   - All index operations are no-ops (Redshift does not support indexes)
+   - Binary field handling via ``RedshiftBinary`` adapter
+
+5. **DatabaseIntrospection** (``introspection.py``)
+
+   - Detects ``identity`` columns as AutoField (not ``nextval``)
+   - Custom ``get_table_description()`` without collation support
+   - Custom ``get_constraints()`` without ``unnest``/``array_agg``
 
 Design Principles
 ====================
 
-1. **Compatibility**: Maintain maximum compatibility with Django's existing PostgreSQL backend
-2. **Transparency**: Allow developers to use Django's ORM without significant changes to their code
-3. **Flexibility**: Support Redshift-specific features where possible
+1. **Independence**: Inherit from Django's base backend, not PostgreSQL
+2. **Compatibility**: Work across Django 4.2, 5.0, 5.1, and future versions
+3. **Transparency**: Allow developers to use Django's ORM without changes
+4. **Flexibility**: Support Redshift-specific features (DISTKEY, SORTKEY)
 
 Key Challenges
 ====================
 
-1. **Version Compatibility**: 
-   Maintain compatibility with Redshift by using the database backend from Django 4.0, which is based on PostgreSQL 10 (no longer supported by Django). This ensures stable operation even with the latest Django versions.
+1. **SQL Differences**:
+   Handle syntactical and functional differences between PostgreSQL and Redshift.
+   Particularly, some PostgreSQL DDL statements are not compatible with Redshift,
+   requiring adjustments in areas such as table creation and constraint handling.
 
-2. **SQL Differences**: 
-   Handle syntactical and functional differences between PostgreSQL and Redshift. Particularly, some PostgreSQL DDL (Data Definition Language) statements are not compatible with Redshift, requiring adjustments in areas such as table creation and constraint handling.
+2. **Data Type Mapping**:
+   Map Django field types to appropriate Redshift data types. Redshift uses
+   ``identity(1, 1)`` instead of ``serial``, ``varchar(max)`` instead of ``text``,
+   ``varbyte`` instead of ``bytea``, and ``varchar(36)`` instead of ``uuid``.
 
-3. **Data Type Mapping**: 
-   Map Django field types to appropriate Redshift data types. This is crucial as Redshift has different data types and limitations compared to standard PostgreSQL.
-
-Implementation Strategy
-============================
-
-1. Use Django 4.0's PostgreSQL backend as the base for the custom Redshift backend
-2. Override necessary methods to implement Redshift-specific behavior
-3. Implement custom SQL compilation logic to generate Redshift-compatible SQL
-4. Develop schema editing logic that accounts for Redshift's limitations
+3. **ALTER TABLE Limitations**:
+   Redshift cannot directly alter column types, nullability, or defaults in many
+   cases. The schema editor implements a 4-step recreation strategy to work around
+   these limitations.
 
 Testing and Validation
 ========================
 
 1. Unit tests for Redshift-specific functionality and limitations
-2. Integration tests with actual Redshift instances
-3. Compatibility testing with supporting Django and Python versions
-4. Operational verification in common Django application scenarios
+2. Integration tests with actual Redshift instances (``TEST_WITH_REDSHIFT=1``)
+3. Local testing against PostgreSQL (``TEST_WITH_POSTGRES=1``)
+4. Compatibility testing across Django 4.2, 5.0, and 5.1 via tox
 
-Future Considerations
-============================
+History
+=========
 
-1. Ongoing maintenance of the Django 4.0-based code to ensure continued compatibility with newer Django versions.
-
-2. Exploration of a potential re-implementation from scratch based on Django 4.2 or later. This would involve:
-
-   - Analyzing the feasibility of adapting to Django 4.2's database backend structure
-   - Evaluating the benefits and drawbacks of a complete rewrite
+The backend was previously built on top of vendored Django 4.0 PostgreSQL backend
+code (~5,700 lines). This was replaced with a standalone implementation inheriting
+from Django's base backend classes, as tracked in
+`issue #167 <https://github.com/jazzband/django-redshift-backend/issues/167>`_.

@@ -1,10 +1,7 @@
 import sys
 
-from psycopg2 import errorcodes
-
 from django.core.exceptions import ImproperlyConfigured
-from django_redshift_backend._vendor.django40.db.backends.base.creation import BaseDatabaseCreation
-from django_redshift_backend._vendor.django40.db.backends.utils import strip_quotes
+from django.db.backends.base.creation import BaseDatabaseCreation
 
 
 class DatabaseCreation(BaseDatabaseCreation):
@@ -34,25 +31,28 @@ class DatabaseCreation(BaseDatabaseCreation):
     def _database_exists(self, cursor, database_name):
         cursor.execute(
             "SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s",
-            [strip_quotes(database_name)],
+            [database_name.strip('"')],
         )
         return cursor.fetchone() is not None
 
     def _execute_create_test_db(self, cursor, parameters, keepdb=False):
         try:
+            from psycopg2 import errorcodes
+        except ImportError:
+            errorcodes = None
+
+        try:
             if keepdb and self._database_exists(cursor, parameters["dbname"]):
-                # If the database should be kept and it already exists, don't
-                # try to create a new one.
                 return
             super()._execute_create_test_db(cursor, parameters, keepdb)
         except Exception as e:
-            if getattr(e.__cause__, "pgcode", "") != errorcodes.DUPLICATE_DATABASE:
-                # All errors except "database already exists" cancel tests.
+            if (
+                errorcodes
+                and getattr(e.__cause__, "pgcode", "") != errorcodes.DUPLICATE_DATABASE
+            ):
                 self.log("Got an error creating the test database: %s" % e)
                 sys.exit(2)
             elif not keepdb:
-                # If the database should be kept, ignore "database already
-                # exists".
                 raise
 
     def _clone_test_db(self, suffix, verbosity, keepdb=False):
